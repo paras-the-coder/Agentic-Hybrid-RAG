@@ -278,16 +278,16 @@ Once you have uploaded a document (e.g., a Tesla 10-K annual report), try these:
 The Groq free tier imposes strict Tokens-Per-Minute (TPM) and Requests-Per-Minute (RPM) limits. Grading 16 chunks in parallel would instantly hit rate limits and cause failures. **Solution:** We implemented local hybrid reranking to compress candidates from 16 to 4 before sending them to the LLM, reducing token usage by 4x.
 
 ### Retrieval Compression vs. Recall
-Aggressively filtering to only 4 chunks risks missing relevant context spread across many pages. **Tradeoff:** We accept a small recall reduction in exchange for dramatically faster response times and fewer rate-limit errors. The hybrid reranker mitigates this by combining semantic and lexical signals to maximize the quality of those 4 chunks.
+To save tokens and make the system faster, we only keep the top 4 most relevant chunks instead of sending many chunks to the LLM. This can sometimes miss useful information from other pages, but it greatly improves speed and reduces API rate-limit issues. To make retrieval more accurate, we combine semantic similarity and keyword matching.
 
 ### Hallucination Mitigation
-Small free-tier LLMs (even Llama-3-70B) can hallucinate, especially when context is noisy or the question is ambiguous. **Solution:** The self-critique loop catches the majority of hallucinations post-generation. However, this adds latency (one extra LLM call per response).
+LLMs can sometimes generate incorrect or made-up answers, especially when the question is unclear or the context is weak. To reduce this, the system checks its own answer after generation using a self-critique step. This improves reliability, but adds a little extra response time.
 
 ### Retry-Loop Safety
-The critique loop could theoretically run forever if the LLM never satisfies the critic. **Solution:** A hard `retry_count` cap of 1 regeneration attempt ensures the system always terminates. After exhausting retries, the best available answer is returned.
+If the critique step fails, the system regenerates the answer one more time using corrective feedback. A strict retry limit of 1 prevents infinite loops and guarantees the workflow always finishes safely.
 
 ### Embedding Model Limitations
-The `BAAI/bge-small-en-v1.5` model produces 384-dimensional vectors with a 512-token context window. Similarity scores are compressed into a narrow range (0.40–0.60), making it difficult to set clean relevance thresholds. **Tradeoff:** Free and local (no API costs, no network dependency) at the cost of reduced semantic precision compared to commercial embeddings.
+The project uses the free local embedding model `BAAI/bge-small-en-v1.5` to avoid API costs. While it works well, its similarity scores are very close together, making it harder to perfectly separate relevant and irrelevant chunks compared to larger commercial embedding models.
 
 ### Latency vs. Accuracy
 Every safety mechanism (grading, critique, retry) adds LLM calls and latency. A full pipeline with web fallback and one retry can take 15–20 seconds. **Tradeoff:** We prioritize answer quality and reliability over raw speed, which is acceptable for document Q&A use cases.
@@ -303,9 +303,3 @@ Every safety mechanism (grading, critique, retry) adds LLM calls and latency. A 
 - **Production Deployment** — Containerize with Docker, deploy on cloud (AWS/GCP), and swap to commercial embeddings (OpenAI `text-embedding-3-large`) and a larger LLM (`GPT-4o`, `Claude 3.5 Sonnet`) for enterprise-grade accuracy.
 - **Authentication & Multi-Tenancy** — Add user authentication so each user has their own isolated document namespace.
 - **Evaluation Dashboard** — Build an automated evaluation harness that runs test queries on every code change and tracks retrieval precision, hallucination rate, and latency metrics over time.
-
----
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
