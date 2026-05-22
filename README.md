@@ -1,0 +1,311 @@
+# 🧠 Agentic Hybrid RAG Assistant with Web Search Fallback & Self-Critique
+
+An advanced **Retrieval-Augmented Generation (RAG)** system built with **LangGraph** that goes far beyond simple document Q&A. This agent autonomously retrieves, grades, rewrites, searches, generates, and critiques — producing reliable, hallucination-resistant answers from your PDF documents or the live internet.
+
+---
+
+## 📖 What is RAG?
+
+**Retrieval-Augmented Generation (RAG)** is a technique where an AI model doesn't rely solely on its training data to answer questions. Instead, it first **retrieves** relevant text from an external knowledge source (like a PDF or database) and then **generates** an answer grounded in that retrieved context. This dramatically reduces hallucinations compared to a standalone LLM.
+
+## 🔄 Normal RAG vs. Agentic RAG
+
+A **standard RAG** pipeline is linear and fragile — it retrieves chunks, feeds them to an LLM, and blindly returns whatever the LLM produces. There is no verification, no fallback, and no self-correction. If the retriever pulls the wrong paragraphs, the LLM hallucinates confidently with zero safety net.
+
+**Agentic RAG** changes everything. Instead of a dumb pipeline, the system acts as an **autonomous agent** with decision-making loops:
+- It **grades** its own retrieved documents for relevance before using them.
+- If the local documents fail, it **falls back** to real-time web search instead of hallucinating.
+- After generating an answer, a **self-critique loop** evaluates the response for factual accuracy.
+- If the critique fails, the agent **regenerates** the answer with corrective feedback — up to 1 retry.
+
+This creates a self-correcting, multi-path reasoning system that is significantly more reliable than traditional RAG.
+
+## 🧩 Why Hybrid RAG Matters
+
+This project implements a **hybrid reranking** strategy that combines two retrieval signals:
+- **Semantic similarity** (dense vector cosine distance) captures conceptual meaning.
+- **Lexical keyword matching** (exact term overlap) catches precise names, numbers, and domain terms that embeddings might miss.
+
+By blending both signals (`60% semantic + 40% lexical`), the system retrieves far more accurate chunks than either method alone, especially for technical or financial documents where exact terminology matters.
+
+---
+
+## 🏗️ Architecture
+
+The core of this system is a **LangGraph state machine** — a directed graph where each node performs one step of the reasoning pipeline, and conditional edges route the flow based on intermediate results.
+
+```
+                        ┌─────────────────┐
+                        │   User Query    │
+                        └────────┬────────┘
+                                 │
+                                 ▼
+                   ┌─────────────────────────┐
+                   │  RETRIEVE (k=20 → top 4)│
+                   │  Hybrid Semantic+Lexical │
+                   │  Reranking & Dedup       │
+                   └────────────┬────────────┘
+                                │
+                                ▼
+                   ┌─────────────────────────┐
+                   │   GRADE DOCUMENTS       │
+                   │   LLM relevance check   │
+                   │   (parallel, 4 chunks)  │
+                   └────────────┬────────────┘
+                                │
+                   ┌────────────┴────────────┐
+                   │    Conditional Edge     │
+                   │  Any chunk relevant?    │
+                   ▼                         ▼
+        ┌──────────────────┐     ┌──────────────────────┐
+        │     GENERATE     │     │  TRANSFORM QUERY &   │
+        │  Answer from PDF │     │  WEB SEARCH (Tavily) │
+        └────────┬─────────┘     └──────────┬───────────┘
+                 │                          │
+                 │         ┌────────────────┘
+                 │         │
+                 ▼         ▼
+        ┌──────────────────────┐
+        │    GENERATE ANSWER   │
+        │   (from web or PDF)  │
+        └──────────┬───────────┘
+                   │
+                   ▼
+        ┌──────────────────────┐
+        │  CRITIQUE GENERATION │◄──────┐
+        │  Hallucination check │       │
+        └──────────┬───────────┘       │
+                   │                   │
+          ┌────────┴────────┐          │
+          │ Conditional Edge│          │
+          │  Critique Pass? │          │
+          ▼                 ▼          │
+    ┌───────────┐   ┌──────────────┐   │
+    │  ✅ END   │   │ REGENERATE   │───┘
+    │  Stream   │   │ REGENERATE   │
+    │  Answer   │   └──────────────┘
+    └───────────┘
+```
+
+### How It Works (Step by Step)
+
+1. **Retrieve** — The user's question is embedded and searched against ChromaDB. The top 20 candidates are retrieved, deduplicated, and reranked using a hybrid semantic + lexical score. Only the **top 4 chunks** survive.
+
+2. **Grade Documents** — Each of the 4 chunks is sent to the LLM in **parallel** with the question: *"Is this chunk actually relevant?"*. The LLM grades each one `yes` or `no`. If all chunks are graded as irrelevant, the system pivots to web search.
+
+3. **Web Search Fallback** — If the PDF doesn't have the answer, the query is first **rewritten** by the LLM into a search-engine-optimized form, then executed against the **Tavily Search API**. Long results are summarized before being passed to generation.
+
+4. **Generate** — The LLM generates a comprehensive answer using the relevant PDF chunks (or web results) as context.
+
+5. **Self-Critique** — A separate LLM call evaluates the generated answer against the source context, checking for unsupported claims, missing information, or contradictions.
+
+6. **Retry or Finish** — If the critique fails, the system loops back to generation with corrective feedback. After passing critique (or exhausting retries), the final answer is streamed to the user.
+
+---
+
+## ✨ Features
+
+| Feature | Description |
+|---|---|
+| **LangGraph Workflow Orchestration** | Stateful, cyclical agent graph with conditional routing and retry loops |
+| **ChromaDB Vector Database** | Persistent local vector storage with metadata filtering for multi-document support |
+| **Hybrid Semantic + Lexical Reranking** | Combined scoring (`0.6×semantic + 0.4×lexical`) for precision retrieval |
+| **Tavily Web Search Fallback** | Automatic fallback to live internet search when PDF context is insufficient |
+| **Query Rewriting** | LLM-powered query transformation for optimized web search results |
+| **Self-Critique Loop** | Post-generation hallucination detection with automatic regeneration (up to 1 retry) |
+| **Confidence Scoring** | Heuristic confidence assessment (High/Medium/Low) based on similarity, retries, and source type |
+| **Streaming SSE Responses** | Real-time Server-Sent Events stream the agent's thought process node-by-node to the UI |
+| **Metadata Citations** | Every answer includes page-level source citations from the original PDF |
+| **Dynamic Dashboard** | A live visual workflow tracker showing which agent node is currently active |
+| **Multi-Document Support** | Upload multiple PDFs and query them individually via a target document selector |
+| **Persistent Vector DB** | ChromaDB persists to disk — no re-ingestion needed between server restarts |
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| **LLM** | [Groq](https://groq.com) (Llama-3.3-70B) | Ultra-fast inference via specialized LPU hardware |
+| **Embeddings** | [BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) | Free, local 384-dim dense embeddings (HuggingFace) |
+| **Vector Database** | [ChromaDB](https://www.trychroma.com/) | Persistent local vector storage with metadata filtering |
+| **Agent Framework** | [LangGraph](https://langchain-ai.github.io/langgraph/) | Stateful graph orchestration with conditional edges and cycles |
+| **Chain Framework** | [LangChain](https://python.langchain.com/) | Prompt templates, output parsers, document loaders |
+| **Web Search** | [Tavily](https://tavily.com/) | AI-optimized search API for real-time internet fallback |
+| **Backend** | [FastAPI](https://fastapi.tiangolo.com/) | Async Python web framework with SSE streaming |
+| **Frontend** | HTML/JS + [Tailwind CSS](https://tailwindcss.com/) | Responsive dark-mode dashboard with real-time workflow visualization |
+| **Streaming** | Server-Sent Events (SSE) | Node-by-node streaming of agent reasoning to the browser |
+
+---
+
+## 📂 Folder Structure
+
+```
+Agentic-Hybrid-RAG/
+├── main.py                # CLI entry point — ingest PDFs and chat in terminal
+├── server.py              # FastAPI backend — upload, status, and SSE chat endpoints
+├── index.html             # Frontend dashboard — dark-mode UI with live workflow tracker
+├── requirements.txt       # Python dependencies
+├── pyproject.toml         # Project metadata and dependency versions
+├── .env                   # API keys (GROQ_API_KEY, TAVILY) — never push to GitHub!
+├── .gitignore             # Excludes .env, chroma_db/, data/, .venv/
+│
+├── src/
+│   ├── __init__.py        # Package initializer
+│   ├── database.py        # PDF ingestion, chunking, embedding, and ChromaDB storage
+│   └── graph.py           # LangGraph state machine — retrieve, grade, search, generate, critique
+│
+├── data/                  # Drop your PDF files here for ingestion (git-ignored)
+├── chroma_db/             # Persistent vector database on disk (git-ignored)
+└── .venv/                 # Python virtual environment (git-ignored)
+```
+
+---
+
+## 🚀 Setup Instructions
+
+### Prerequisites
+- Python 3.13+
+- A free [Groq API key](https://console.groq.com/)
+- A free [Tavily API key](https://tavily.com/)
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/agentic-hybrid-rag.git
+cd agentic-hybrid-rag
+```
+
+### 2. Create a Virtual Environment
+
+```bash
+python -m venv .venv
+
+# Windows
+.\.venv\Scripts\activate
+
+# macOS/Linux
+source .venv/bin/activate
+```
+
+### 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Configure Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+GROQ_API_KEY=your_groq_api_key_here
+TAVILY=your_tavily_api_key_here
+```
+
+### 5. Add Your PDF Documents
+
+Place your PDF files in the `data/` directory:
+
+```bash
+mkdir data
+# Copy your PDFs into the data/ folder
+```
+
+### 6. Run the Application
+
+**Option A: Web Dashboard (Recommended)**
+
+```bash
+python server.py
+```
+
+Open your browser to `http://localhost:8000`. Upload PDFs through the UI, select a target document, and start asking questions.
+
+**Option B: Terminal CLI**
+
+```bash
+python main.py
+```
+
+This will ingest PDFs from `data/`, build the vector database, and start an interactive terminal chatbot.
+
+---
+
+## 💬 Example Queries
+
+Once you have uploaded a document (e.g., a Tesla 10-K annual report), try these:
+
+```
+📄 PDF-Grounded Queries:
+• "What was the total revenue for Tesla in 2025, and how did it compare to 2024?"
+• "Summarize the major risk factors mentioned in the annual report."
+• "What are Tesla's Research and Development expenses, and what drove the year-over-year change?"
+• "According to the balance sheet, what was the cash and cash equivalents as of December 31, 2025?"
+
+🌐 Web Fallback Queries (answer not in PDF):
+• "Compare Tesla's 2025 vehicle production numbers against BYD's for the same year."
+• "What are the latest AI regulations proposed by the European Union?"
+```
+
+---
+
+## 📊 Evaluation & Testing
+
+> Most RAG projects skip evaluation entirely. This section documents the specific reliability tests performed on this system.
+
+### Hallucination Testing
+- Verified that the system **does not fabricate** information when the answer exists in the PDF. The self-critique node catches unsupported claims and forces regeneration with corrective feedback.
+- Tested with ambiguous queries to ensure the LLM responds with *"I could not find relevant information"* rather than inventing answers.
+
+### Retrieval Accuracy
+- Validated that the hybrid reranker (semantic + lexical) correctly surfaces the most relevant chunks for domain-specific financial and legal terminology.
+- Confirmed that metadata filtering (`source` field) prevents cross-document contamination when multiple PDFs are loaded.
+
+### Web Fallback Accuracy
+- Tested queries that are intentionally outside the PDF scope (e.g., comparing Tesla with BYD). Verified that the grader correctly rejects all PDF chunks, triggers query rewriting, and falls back to Tavily web search.
+- Confirmed that web search results are summarized when exceeding 1500 characters to stay within LLM context limits.
+
+### Critique Validation
+- Verified the critique loop by feeding intentionally weak generations. The critic correctly returned `"no"` with a reason, and the system regenerated the answer with the feedback injected into the prompt.
+- Confirmed that the retry counter prevents infinite loops (max 1 retry after initial generation).
+
+---
+
+## ⚖️ Challenges & Tradeoffs
+
+### Groq Free-Tier Token Limits
+The Groq free tier imposes strict Tokens-Per-Minute (TPM) and Requests-Per-Minute (RPM) limits. Grading 16 chunks in parallel would instantly hit rate limits and cause failures. **Solution:** We implemented local hybrid reranking to compress candidates from 16 to 4 before sending them to the LLM, reducing token usage by 4x.
+
+### Retrieval Compression vs. Recall
+Aggressively filtering to only 4 chunks risks missing relevant context spread across many pages. **Tradeoff:** We accept a small recall reduction in exchange for dramatically faster response times and fewer rate-limit errors. The hybrid reranker mitigates this by combining semantic and lexical signals to maximize the quality of those 4 chunks.
+
+### Hallucination Mitigation
+Small free-tier LLMs (even Llama-3-70B) can hallucinate, especially when context is noisy or the question is ambiguous. **Solution:** The self-critique loop catches the majority of hallucinations post-generation. However, this adds latency (one extra LLM call per response).
+
+### Retry-Loop Safety
+The critique loop could theoretically run forever if the LLM never satisfies the critic. **Solution:** A hard `retry_count` cap of 1 regeneration attempt ensures the system always terminates. After exhausting retries, the best available answer is returned.
+
+### Embedding Model Limitations
+The `BAAI/bge-small-en-v1.5` model produces 384-dimensional vectors with a 512-token context window. Similarity scores are compressed into a narrow range (0.40–0.60), making it difficult to set clean relevance thresholds. **Tradeoff:** Free and local (no API costs, no network dependency) at the cost of reduced semantic precision compared to commercial embeddings.
+
+### Latency vs. Accuracy
+Every safety mechanism (grading, critique, retry) adds LLM calls and latency. A full pipeline with web fallback and one retry can take 15–20 seconds. **Tradeoff:** We prioritize answer quality and reliability over raw speed, which is acceptable for document Q&A use cases.
+
+---
+
+## 🔮 Future Improvements
+
+- **Conversational Memory** — Add chat history to the LangGraph state so the agent can handle follow-up questions and multi-turn conversations.
+- **Multi-Hop Reasoning** — Decompose complex queries into sub-questions, retrieve context for each, and synthesize a combined answer.
+- **Cross-Encoder Reranking** — Replace the lexical heuristic with a learned cross-encoder model (e.g., `ms-marco-MiniLM`) for more accurate reranking.
+- **Multi-Query Decomposition** — Generate multiple reformulations of the user's query and retrieve from each, merging the results for better recall.
+- **Production Deployment** — Containerize with Docker, deploy on cloud (AWS/GCP), and swap to commercial embeddings (OpenAI `text-embedding-3-large`) and a larger LLM (`GPT-4o`, `Claude 3.5 Sonnet`) for enterprise-grade accuracy.
+- **Authentication & Multi-Tenancy** — Add user authentication so each user has their own isolated document namespace.
+- **Evaluation Dashboard** — Build an automated evaluation harness that runs test queries on every code change and tracks retrieval precision, hallucination rate, and latency metrics over time.
+
+---
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).

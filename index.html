@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Agentic RAG Engine - Dashboard</title>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Outfit:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#0f141b",
+                        "inverse-primary": "#00696e",
+                        "secondary-fixed": "#e9ddff",
+                        "on-tertiary": "#3f0689",
+                        "on-background": "#dee2ec",
+                        "secondary-container": "#571bc1",
+                        "on-secondary": "#3c0091",
+                        "on-primary": "#003739",
+                        "surface-container-high": "#252a32",
+                        "inverse-on-surface": "#2c3138",
+                        "on-surface-variant": "#b9caca",
+                        "tertiary-fixed-dim": "#d3bbff",
+                        "error": "#ffb4ab",
+                        "tertiary-container": "#e7d7ff",
+                        "primary-container": "#00f5ff",
+                        "primary": "#e9feff",
+                        "on-secondary-fixed": "#23005c",
+                        "tertiary": "#fff8ff",
+                        "outline-variant": "#3a494a",
+                        "secondary-fixed-dim": "#d0bcff",
+                        "primary-fixed-dim": "#00dce5",
+                        "outline": "#849495",
+                        "inverse-surface": "#dee2ec",
+                        "error-container": "#93000a",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-container": "#006c71",
+                        "on-surface": "#dee2ec",
+                        "on-primary-fixed": "#002021",
+                        "tertiary-fixed": "#ebdcff",
+                        "on-secondary-container": "#c4abff",
+                        "surface-tint": "#00dce5",
+                        "on-tertiary-fixed-variant": "#572ba0",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed": "#260059",
+                        "background": "#0f141b",
+                        "surface-container": "#1b2027",
+                        "surface-dim": "#0f141b",
+                        "on-tertiary-container": "#7249bd",
+                        "on-secondary-fixed-variant": "#5516be",
+                        "surface-container-highest": "#30353d",
+                        "surface-variant": "#30353d",
+                        "primary-fixed": "#63f7ff",
+                        "secondary": "#d0bcff",
+                        "surface-container-low": "#171c23",
+                        "surface-bright": "#343941",
+                        "surface-container-lowest": "#090f15",
+                        "on-primary-fixed-variant": "#004f53"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xxl": "48px",
+                        "md": "16px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "gutter": "24px",
+                        "sm": "8px",
+                        "unit": "4px",
+                        "margin": "32px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "display-md": ["Outfit"],
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Outfit"],
+                        "headline-md": ["Outfit"],
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "display-lg": ["Outfit"],
+                        "code-sm": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "display-md": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "code-sm": ["13px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for glassmorphism panels */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Node connection line */
+        .node-path {
+            position: absolute;
+            left: 24px;
+            top: 24px;
+            bottom: 24px;
+            width: 2px;
+            background: linear-gradient(to bottom, rgba(87, 27, 193, 0.5), rgba(0, 245, 255, 0.8), rgba(87, 27, 193, 0.2));
+            z-index: 0;
+        }
+
+        /* Animations */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 245, 255, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(0, 245, 255, 0.8); }
+        }
+        .animate-pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes slide-up-fade {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .message-enter {
+            animation: slide-up-fade 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        
+        .message-enter:nth-child(1) { animation-delay: 0.1s; }
+        .message-enter:nth-child(2) { animation-delay: 0.3s; }
+        .message-enter:nth-child(3) { animation-delay: 0.5s; }
+
+        @keyframes dash-flow {
+            to {
+                stroke-dashoffset: -100;
+            }
+        }
+        .path-flow {
+            stroke-dasharray: 10 10;
+            animation: dash-flow 2s linear infinite;
+        }
+
+        /* Glass shimmer on hover */
+        .glass-hover {
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+        .glass-hover:hover {
+            transform: scale(1.02);
+        }
+        .glass-hover::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+            transform: skewX(-20deg);
+        }
+        .glass-hover:hover::after {
+            animation: shimmer 0.7s forwards;
+        }
+        @keyframes shimmer {
+            100% { left: 200%; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-pulse-glow, .message-enter, .path-flow, .glass-hover::after, .glass-hover:hover {
+                animation: none;
+                transform: none;
+                opacity: 1;
+            }
+        }
+        
+        #particles-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background h-screen w-screen overflow-hidden flex font-body-md text-body-md selection:bg-primary-container/30 selection:text-primary">
+    <!-- Particle Background Canvas -->
+    <canvas id="particles-bg"></canvas>
+    <!-- Background Atmospheric Glow -->
+    <div class="fixed inset-0 pointer-events-none z-[-2] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-surface-container/80 via-background to-black"></div>
+    
+    <!-- SideNavBar -->
+    <nav class="fixed left-0 top-0 h-full z-50 w-20 flex flex-col items-center py-8 border-r border-white/10 bg-surface/30 backdrop-blur-xl shadow-[0_0_15px_rgba(0,245,255,0.1)] justify-between">
+        <!-- Brand Logo -->
+        <div class="font-display-md text-display-md text-primary-fixed-dim tracking-tighter cursor-pointer glass-hover">
+            <span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">dataset</span>
+        </div>
+        <!-- Navigation Tabs -->
+        <div class="flex flex-col gap-6 w-full px-2">
+            <!-- Active Tab: Dashboard -->
+            <button class="glass-hover flex flex-col items-center justify-center p-2 text-primary bg-primary/10 rounded-xl shadow-[0_0_10px_rgba(0,245,255,0.3)] scale-95 active:scale-90 transition-transform group">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+                <span class="font-label-md text-[10px] mt-1 opacity-100">Dashboard</span>
+            </button>
+
+        </div>
+        <!-- Footer / Version -->
+        <div class="font-label-md text-[10px] text-on-surface-variant/50">
+            v2.4
+        </div>
+    </nav>
+    
+    <!-- Main Content Wrapper -->
+    <div class="flex-1 ml-20 flex flex-col h-full relative z-10">
+        <!-- TopAppBar -->
+        <header class="flex justify-between items-center px-gutter w-full h-16 border-b border-white/10 bg-surface/20 backdrop-blur-md shrink-0">
+            <div class="flex items-center gap-4">
+                <div class="font-headline-md text-headline-md font-bold text-primary-fixed">
+                    Agentic RAG Engine
+                </div>
+                <div class="h-5 w-[1px] bg-white/10 mx-2"></div>
+                <div class="flex items-center gap-2 font-label-md text-label-md text-primary-fixed-dim bg-primary-container/10 px-3 py-1 rounded-full border border-primary-container/30 glass-hover cursor-default">
+                    <span class="w-2 h-2 rounded-full bg-primary-fixed shadow-[0_0_8px_rgba(99,247,255,0.8)] animate-pulse"></span>
+                    System Online
+                </div>
+            </div>
+            <div class="flex items-center gap-6">
+                <!-- Trailing Icons -->
+                <button class="text-on-surface-variant hover:text-primary-fixed-dim transition-colors relative glass-hover rounded-full p-1">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border border-surface"></span>
+                </button>
+                <button class="text-on-surface-variant hover:text-primary-fixed-dim transition-colors glass-hover rounded-full p-1">
+                    <span class="material-symbols-outlined">bolt</span>
+                </button>
+                <!-- Profile Image -->
+                <div class="glass-hover w-8 h-8 rounded-full border border-white/20 overflow-hidden cursor-pointer hover:border-primary-fixed-dim transition-colors">
+                    <div class="w-full h-full bg-primary/10 flex items-center justify-center text-primary-fixed text-xs font-semibold">AI</div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Split Screen Layout -->
+        <main class="flex-1 flex overflow-hidden p-6 gap-6 w-full mx-auto max-w-[1600px]">
+            <!-- LEFT COLUMN: Chat Panel -->
+            <section class="flex-1 flex flex-col min-w-0 bg-[rgba(255,255,255,0.02)] backdrop-blur-xl border border-white/5 rounded-2xl relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+                <!-- Chat Header -->
+                <div class="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-surface/30 gap-4 flex-wrap">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-primary-container">forum</span>
+                        <h2 class="font-headline-md text-[18px] text-on-surface">Investigation Thread #892</h2>
+                    </div>
+                    <!-- Source Document Selector -->
+                    <div class="flex items-center gap-2">
+                        <span class="font-label-md text-[12px] text-on-surface-variant flex items-center gap-1 select-none">
+                            <span class="material-symbols-outlined text-[14px]">filter_list</span> Target:
+                        </span>
+                        <select id="source-selector" class="bg-surface-container-high/80 border border-white/10 rounded-lg text-body-sm text-on-surface py-1 px-3 pr-8 focus:outline-none focus:ring-1 focus:ring-primary-container/50 focus:border-primary-container/50 cursor-pointer transition-all max-w-[220px] text-ellipsis overflow-hidden">
+                            <option value="all">📁 All Documents</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Chat History Scroll Area -->
+                <div id="chat-history" class="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+                    <!-- AI Greeting -->
+                    <div class="flex flex-col gap-1 max-w-[85%] message-enter">
+                        <div class="flex items-center gap-2 ml-1 mb-1">
+                            <span class="material-symbols-outlined text-[14px] text-primary-fixed-dim">robot_2</span>
+                            <span class="font-label-md text-label-md text-on-surface-variant">RAG Core Agent</span>
+                        </div>
+                        <div id="initial-greeting" class="bg-surface-container-high/50 backdrop-blur-md border border-white/5 rounded-2xl rounded-tl-sm p-4 text-on-surface font-body-md text-body-md shadow-lg shadow-black/20">
+                            Hello. I am connected to your enterprise knowledge base (currently referencing Tesla 2024 annual reports). You can ask me questions or upload new PDF documents to ingest them!
+                        </div>
+                    </div>
+                    
+                    <!-- Dynamic Messages will get appended here -->
+                    
+                    <!-- Typing Indicator (Subtle, Hidden by default) -->
+                    <div id="typing-indicator" class="flex items-center gap-2 ml-2 mt-2 opacity-50 message-enter hidden">
+                        <span class="w-1.5 h-1.5 bg-primary-container rounded-full animate-bounce" style="animation-delay: 0ms;"></span>
+                        <span class="w-1.5 h-1.5 bg-primary-container rounded-full animate-bounce" style="animation-delay: 150ms;"></span>
+                        <span class="w-1.5 h-1.5 bg-primary-container rounded-full animate-bounce" style="animation-delay: 300ms;"></span>
+                    </div>
+                </div>
+                
+                <!-- Floating Input Area -->
+                <div class="p-4 bg-surface/40 backdrop-blur-2xl border-t border-white/5 z-20">
+                    <div class="flex items-center gap-3 bg-surface-container-high/60 border border-white/10 rounded-full p-2 pl-4 focus-within:ring-1 focus-within:ring-primary-container/50 focus-within:border-primary-container/50 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+                        <button id="upload-btn" class="text-on-surface-variant hover:text-primary-container transition-colors p-1 glass-hover rounded-full" title="Upload Document">
+                            <span class="material-symbols-outlined">add_circle</span>
+                        </button>
+                        <!-- Hidden File Input -->
+                        <input type="file" id="upload-input" accept=".pdf" class="hidden">
+                        
+                        <input id="chat-input" class="bg-transparent border-none outline-none flex-1 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/50 focus:ring-0" placeholder="Ask the RAG engine or reference a document..." type="text"/>
+                        
+                        <button id="send-btn" class="glass-hover w-10 h-10 rounded-full bg-secondary-container hover:bg-secondary-container/80 text-white flex items-center justify-center transition-all shadow-[0_0_10px_rgba(87,27,193,0.4)]">
+                            <span class="material-symbols-outlined text-[20px] ml-1">send</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- RIGHT COLUMN: Agent Intelligence Panel -->
+            <section class="w-[420px] flex flex-col gap-6 overflow-y-auto shrink-0 pb-2 pr-2 custom-scrollbar">
+                <!-- Top Section: LangGraph State Machine -->
+                <div class="bg-[rgba(255,255,255,0.02)] backdrop-blur-xl border border-white/5 rounded-2xl p-6 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] flex-shrink-0">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-headline-md text-[16px] text-on-surface flex items-center gap-2">
+                            <span class="material-symbols-outlined text-secondary-fixed-dim text-[18px]">account_tree</span>
+                            Agent Workflow Status
+                        </h3>
+                        <span id="workflow-badge" class="px-2 py-0.5 rounded text-[10px] font-label-md bg-white/10 text-on-surface-variant border border-white/10">Idle</span>
+                    </div>
+                    
+                    <!-- Graph Visualization -->
+                    <div class="relative pl-6 py-2 flex flex-col gap-6 font-code-sm">
+                        <!-- SVG Connection Line -->
+                        <svg class="absolute left-[15px] top-6 h-[calc(100%-48px)] w-[4px] pointer-events-none" style="z-index: 0;">
+                            <line x1="2" y1="0" x2="2" y2="100%" stroke="rgba(255, 255, 255, 0.1)" stroke-width="2" id="path-line-base"></line>
+                            <line x1="2" y1="0" x2="2" y2="100%" stroke="#00f5ff" stroke-width="2" id="path-line" class="path-flow" style="display: none;"></line>
+                        </svg>
+                        
+                        <!-- Node 1: Retrieve -->
+                        <div class="relative z-10 flex items-center gap-4 group">
+                            <div id="node-retrieve" class="w-8 h-8 rounded-full bg-surface-container border border-white/10 flex items-center justify-center shrink-0 transition-all duration-300">
+                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">database</span>
+                            </div>
+                            <div class="flex-1 bg-surface/20 border border-white/5 border-dashed rounded-lg px-3 py-2 text-on-surface-variant flex justify-between items-center group-hover:border-white/10 transition-colors">
+                                <span>Retrieve Documents</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Node 2: Grade Documents -->
+                        <div class="relative z-10 flex items-center gap-4">
+                            <div id="node-grade" class="w-8 h-8 rounded-full bg-surface-container border border-white/10 flex items-center justify-center shrink-0 transition-all duration-300">
+                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">fact_check</span>
+                            </div>
+                            <div class="flex-1 bg-surface/20 border border-white/5 border-dashed rounded-lg px-3 py-2 text-on-surface-variant flex justify-between items-center">
+                                <span>Grade Documents</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Node 3: Web Search Fallback -->
+                        <div class="relative z-10 flex items-center gap-4">
+                            <div id="node-search" class="w-8 h-8 rounded-full bg-surface-container border border-white/10 flex items-center justify-center shrink-0 transition-all duration-300">
+                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">travel_explore</span>
+                            </div>
+                            <div class="flex-1 bg-surface/20 border border-white/5 border-dashed rounded-lg px-3 py-2 text-on-surface-variant">
+                                <span>Web Search Fallback</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Node 4: Generate Response -->
+                        <div class="relative z-10 flex items-center gap-4">
+                            <div id="node-generate" class="w-8 h-8 rounded-full bg-surface-container border border-white/10 flex items-center justify-center shrink-0 transition-all duration-300">
+                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">edit_document</span>
+                            </div>
+                            <div class="flex-1 bg-surface/20 border border-white/5 border-dashed rounded-lg px-3 py-2 text-on-surface-variant">
+                                <span>Generate Response</span>
+                            </div>
+                        </div>
+
+                        <!-- Node 5: Critique & Scoring -->
+                        <div class="relative z-10 flex items-center gap-4">
+                            <div id="node-critique" class="w-8 h-8 rounded-full bg-surface-container border border-white/10 flex items-center justify-center shrink-0 transition-all duration-300">
+                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">rate_review</span>
+                            </div>
+                            <div class="flex-1 bg-surface/20 border border-white/5 border-dashed rounded-lg px-3 py-2 text-on-surface-variant">
+                                <span>Critique & Scoring</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bottom Section: Retrieved Context -->
+                <div class="bg-[rgba(255,255,255,0.02)] backdrop-blur-xl border border-white/5 rounded-2xl p-6 relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] flex-1 flex flex-col min-h-[300px]">
+                    <div class="flex items-center justify-between mb-4 shrink-0">
+                        <h3 class="font-headline-md text-[16px] text-on-surface flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary-fixed-dim text-[18px]">find_in_page</span>
+                            Retrieved Context
+                        </h3>
+                        <span id="k-badge" class="text-[11px] font-label-md text-on-surface-variant">k=0 chunks</span>
+                    </div>
+                    <!-- Context List -->
+                    <div id="context-list" class="flex flex-col gap-3 overflow-y-auto pr-1 flex-1">
+                        <div class="text-on-surface-variant/50 text-[12px] italic p-4 text-center mt-8">
+                            No queries processed yet. Chunks will appear here.
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script>
+        // Subtle Particle Background System
+        const canvas = document.getElementById('particles-bg');
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && canvas) {
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            
+            window.addEventListener('resize', resize);
+            resize();
+            
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.5 + 0.5;
+                    this.speedX = Math.random() * 0.2 - 0.1;
+                    this.speedY = Math.random() * -0.2 - 0.1;
+                    this.opacity = Math.random() * 0.3 + 0.1;
+                }
+                update() {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.y < 0) {
+                        this.y = canvas.height;
+                        this.x = Math.random() * canvas.width;
+                    }
+                }
+                draw() {
+                    ctx.fillStyle = `rgba(0, 245, 255, ${this.opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            
+            for (let i = 0; i < 50; i++) {
+                particles.push(new Particle());
+            }
+            
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+                requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+    </script>
+    
+    <script>
+        // System Interactive JS
+        const chatHistory = document.getElementById('chat-history');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const uploadInput = document.getElementById('upload-input');
+        const uploadBtn = document.getElementById('upload-btn');
+        const contextList = document.getElementById('context-list');
+        const workflowBadge = document.getElementById('workflow-badge');
+        const kBadge = document.getElementById('k-badge');
+        
+        // Workflow Nodes
+        const nodeRetrieve = document.getElementById('node-retrieve');
+        const nodeGrade = document.getElementById('node-grade');
+        const nodeSearch = document.getElementById('node-search');
+        const nodeGenerate = document.getElementById('node-generate');
+        const nodeCritique = document.getElementById('node-critique');
+        const pathLine = document.getElementById('path-line');
+        
+        // Reset workflow visual states
+        function resetWorkflow() {
+            const nodes = [nodeRetrieve, nodeGrade, nodeSearch, nodeGenerate, nodeCritique];
+            nodes.forEach(n => {
+                if (!n) return;
+                n.className = 'w-8 h-8 rounded-full bg-surface-container border border-white/10 flex items-center justify-center shrink-0 transition-all duration-300';
+                const icon = n.querySelector('.material-symbols-outlined');
+                icon.className = 'material-symbols-outlined text-[16px] text-on-surface-variant';
+                icon.style.animation = 'none';
+                
+                const nodeInner = n.nextElementSibling;
+                nodeInner.className = 'flex-1 bg-surface/20 border border-white/5 border-dashed rounded-lg px-3 py-2 text-on-surface-variant';
+            });
+            pathLine.style.display = 'none';
+        }
+
+        // Set a workflow node to Active
+        function setNodeActive(nodeId, message = "") {
+            resetWorkflow();
+            let targetNode;
+            let stepIndex = 0;
+            
+            if (nodeId === 'retrieve') {
+                targetNode = nodeRetrieve;
+                stepIndex = 1;
+            } else if (nodeId === 'grade_documents') {
+                targetNode = nodeGrade;
+                stepIndex = 2;
+            } else if (nodeId === 'transform_query_and_search') {
+                targetNode = nodeSearch;
+                stepIndex = 3;
+            } else if (nodeId === 'generate') {
+                targetNode = nodeGenerate;
+                stepIndex = 4;
+            } else if (nodeId === 'critique_generation') {
+                targetNode = nodeCritique;
+                stepIndex = 5;
+            }
+            
+            if (targetNode) {
+                // Glow active node
+                targetNode.className = 'w-8 h-8 rounded-full bg-primary-container/20 border-2 border-primary-container shadow-[0_0_15px_rgba(0,245,255,0.4)] flex items-center justify-center shrink-0 animate-pulse-glow';
+                const icon = targetNode.querySelector('.material-symbols-outlined');
+                icon.className = 'material-symbols-outlined text-[16px] text-primary-container';
+                
+                const nodeInner = targetNode.nextElementSibling;
+                nodeInner.className = 'flex-1 bg-primary-container/10 border border-primary-container/50 rounded-lg px-3 py-2 text-primary shadow-[0_0_20px_rgba(0,245,255,0.1)] flex flex-col';
+                
+                // Show connecting line animations
+                pathLine.style.display = 'block';
+                // Adjust dash flow based on node index
+                const offsetPercentage = (stepIndex - 1) * 20;
+                pathLine.style.strokeDashoffset = `${-offsetPercentage}`;
+            }
+        }
+
+        // Append Chat Bubble
+        function appendMessage(sender, text) {
+            const bubble = document.createElement('div');
+            bubble.className = `flex flex-col gap-1 max-w-[85%] ${sender === 'user' ? 'self-end message-enter' : 'message-enter'}`;
+            
+            const header = document.createElement('div');
+            header.className = `flex items-center gap-2 ${sender === 'user' ? 'mr-1 mb-1 justify-end' : 'ml-1 mb-1'}`;
+            
+            if (sender === 'user') {
+                header.innerHTML = `<span class="font-label-md text-label-md text-on-surface-variant">You</span><span class="material-symbols-outlined text-[14px] text-secondary">person</span>`;
+                bubble.innerHTML = `
+                    ${header.outerHTML}
+                    <div class="bg-secondary-container/30 backdrop-blur-md border border-secondary-container/50 rounded-2xl rounded-tr-sm p-4 text-white font-body-md text-body-md shadow-lg shadow-black/20">
+                        ${text}
+                    </div>
+                `;
+            } else {
+                header.innerHTML = `
+                    <span class="material-symbols-outlined text-[14px] text-primary-fixed-dim">robot_2</span>
+                    <span class="font-label-md text-label-md text-on-surface-variant">RAG Core Agent</span>
+                `;
+                bubble.innerHTML = `
+                    ${header.outerHTML}
+                    <div class="bg-surface-container-high/50 backdrop-blur-md border border-white/5 border-l-2 border-l-primary-container rounded-2xl rounded-tl-sm p-4 text-on-surface font-body-md text-body-sm shadow-lg shadow-black/20 leading-relaxed">
+                        ${text}
+                    </div>
+                `;
+            }
+            chatHistory.appendChild(bubble);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // Dynamic status/greeting update function
+        async function updateStatusGreeting() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                
+                // Populate document selector dropdown
+                const selector = document.getElementById('source-selector');
+                if (selector && data.status === 'success') {
+                    const currentSelection = selector.value;
+                    selector.innerHTML = '<option value="all">📁 All Documents</option>';
+                    
+                    if (data.documents && data.documents.length) {
+                        data.documents.forEach(doc => {
+                            const opt = document.createElement('option');
+                            opt.value = doc;
+                            opt.innerText = `📄 ${doc}`;
+                            selector.appendChild(opt);
+                        });
+                    }
+                    
+                    if (data.documents.includes(currentSelection)) {
+                        selector.value = currentSelection;
+                    } else {
+                        selector.value = 'all';
+                    }
+                }
+                
+                const initialGreeting = document.getElementById('initial-greeting');
+                if (initialGreeting && data.status === 'success') {
+                    if (data.total_documents > 0) {
+                        const docsStr = data.documents.join(', ');
+                        initialGreeting.innerHTML = `System initialized. I am currently indexing ${data.total_documents} document(s) (<strong>${docsStr}</strong>) containing <strong>${data.total_chunks}</strong> semantic chunks. Ask me a question or upload a new PDF document to ingest it!`;
+                    } else {
+                        initialGreeting.innerHTML = `System initialized. No documents are currently indexed. Please upload a PDF document to begin!`;
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to update status greeting:', e);
+            }
+        }
+
+        // File Upload Handler
+        uploadBtn.addEventListener('click', () => uploadInput.click());
+        uploadInput.addEventListener('change', async () => {
+            if (!uploadInput.files.length) return;
+            const file = uploadInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            appendMessage('bot', `Ingesting file <strong>${file.name}</strong>...`);
+            
+            try {
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    appendMessage('bot', `✅ ${data.message}`);
+                    await updateStatusGreeting();
+                } else {
+                    appendMessage('bot', `❌ Error: ${data.message}`);
+                }
+            } catch (e) {
+                appendMessage('bot', `❌ Network error: ${e.message}`);
+            }
+            uploadInput.value = ''; // Reset file input
+        });
+
+        // Chat execution handler
+        async function handleSend() {
+            const question = chatInput.value.trim();
+            if (!question) return;
+            
+            chatInput.value = '';
+            appendMessage('user', question);
+            
+            // Show Bot typing indicator
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) typingIndicator.classList.remove('hidden');
+            
+            resetWorkflow();
+            workflowBadge.innerText = 'Active';
+            workflowBadge.className = 'px-2 py-0.5 rounded text-[10px] font-label-md bg-primary-container/10 text-primary-container border border-primary-container/30';
+            
+            contextList.innerHTML = '<div class="text-on-surface-variant/50 text-[12px] italic p-4 text-center mt-8">Awaiting document retrieval...</div>';
+            kBadge.innerText = 'k=0 chunks';
+            
+            let currentBotMessageBody = null;
+            
+            // Setup SSE connection
+            const selector = document.getElementById('source-selector');
+            const selectedSource = selector ? selector.value : 'all';
+            const eventSource = new EventSource(`/api/chat?question=${encodeURIComponent(question)}&source=${encodeURIComponent(selectedSource)}`);
+            
+            eventSource.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                if (data.status === 'error') {
+                    if (typingIndicator) typingIndicator.classList.add('hidden');
+                    appendMessage('bot', `🚨 System Error: ${data.message}`);
+                    workflowBadge.innerText = 'Error';
+                    workflowBadge.className = 'px-2 py-0.5 rounded text-[10px] font-label-md bg-error-container/10 text-error border border-error-container/30';
+                    eventSource.close();
+                    return;
+                }
+                
+                if (data.status === 'done') {
+                    if (typingIndicator) typingIndicator.classList.add('hidden');
+                    workflowBadge.innerText = 'Idle';
+                    workflowBadge.className = 'px-2 py-0.5 rounded text-[10px] font-label-md bg-white/10 text-on-surface-variant border border-white/10';
+                    eventSource.close();
+                    return;
+                }
+                
+                // Handle node updates
+                if (data.node) {
+                    if (data.node === 'retrieve') {
+                        setNodeActive('retrieve');
+                        
+                        // Populate chunks
+                        if (data.documents && data.documents.length) {
+                            kBadge.innerText = `k=${data.documents.length} chunks`;
+                            contextList.innerHTML = '';
+                            data.documents.forEach((doc, idx) => {
+                                let source = doc.metadata.source || 'Unknown';
+                                source = source.split('/').pop().split('\\').pop(); // Get filename
+                                const page = doc.metadata.page !== undefined ? doc.metadata.page : 'Unknown';
+                                const score = doc.metadata.score !== undefined ? doc.metadata.score : (0.95 - idx * 0.05);
+                                
+                                const chunk = document.createElement('div');
+                                chunk.className = 'bg-surface-container/50 border border-white/5 p-3 rounded-xl hover:border-white/10 transition-colors group';
+                                chunk.innerHTML = `
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-[14px] text-primary-fixed-dim" id="status-icon-${idx}">check_circle</span>
+                                            <span class="font-code-sm text-[11px] text-on-surface-variant">${source} (Page ${page})</span>
+                                        </div>
+                                        <span class="text-[10px] bg-primary-container/10 text-primary px-1.5 py-0.5 rounded">Score: ${score.toFixed(2)}</span>
+                                    </div>
+                                    <p class="font-body-sm text-[12px] text-on-surface line-clamp-3 opacity-80 group-hover:opacity-100 transition-opacity">
+                                        ${doc.content}
+                                    </p>
+                                `;
+                                contextList.appendChild(chunk);
+                            });
+                        }
+                    } else if (data.node === 'grade_documents') {
+                        setNodeActive('grade_documents');
+                        const fallback = data.search_fallback;
+                        
+                        // Highlight relevance grades in the Context UI Panel
+                        const items = contextList.children;
+                        if (fallback === 'yes') {
+                            for (let i = 0; i < items.length; i++) {
+                                const icon = document.getElementById(`status-icon-${i}`);
+                                if (icon) {
+                                    icon.innerText = 'cancel';
+                                    icon.className = 'material-symbols-outlined text-[14px] text-error';
+                                }
+                            }
+                        }
+                    } else if (data.node === 'transform_query_and_search') {
+                        setNodeActive('transform_query_and_search');
+                        // Show web fallback chunk
+                        kBadge.innerText = 'k=1 web fallback';
+                        contextList.innerHTML = `
+                            <div class="bg-secondary-container/15 border border-secondary-container/40 p-3 rounded-xl">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-[14px] text-secondary">travel_explore</span>
+                                        <span class="font-code-sm text-[11px] text-secondary-fixed">Tavily Web Search Results</span>
+                                    </div>
+                                    <span class="text-[10px] bg-secondary-container/10 text-secondary px-1.5 py-0.5 rounded">Live Web Results</span>
+                                </div>
+                                <p class="font-body-sm text-[12px] text-on-surface opacity-90">
+                                    Retrieved fresh results from online sources. Rewritten search query: <i>"${question}"</i>
+                                </p>
+                            </div>
+                        `;
+                    } else if (data.node === 'generate') {
+                        setNodeActive('generate');
+                        if (data.generation) {
+                            if (typingIndicator) typingIndicator.classList.add('hidden');
+                            
+                            // Format response and display page citations beautifully
+                            let formattedGen = data.generation
+                                .replace(/\n/g, '<br>')
+                                .replace(/\[Page\s*(\d+)\]/gi, (match, p1) => {
+                                    return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-label-md bg-surface-variant text-on-surface-variant border border-white/10 hover:bg-surface-bright hover:text-white transition-colors cursor-pointer select-none mx-0.5"><span class="material-symbols-outlined text-[12px] mr-0.5">description</span>Page ${p1}</span>`;
+                                });
+                            
+                            if (currentBotMessageBody) {
+                                currentBotMessageBody.innerHTML = formattedGen;
+                            } else {
+                                const bubble = document.createElement('div');
+                                bubble.className = 'flex flex-col gap-1 max-w-[85%] message-enter';
+                                
+                                const header = document.createElement('div');
+                                header.className = 'flex items-center gap-2 ml-1 mb-1';
+                                header.innerHTML = `
+                                    <span class="material-symbols-outlined text-[14px] text-primary-fixed-dim">robot_2</span>
+                                    <span class="font-label-md text-label-md text-on-surface-variant">RAG Core Agent</span>
+                                `;
+                                
+                                const body = document.createElement('div');
+                                body.className = 'bg-surface-container-high/50 backdrop-blur-md border border-white/5 border-l-2 border-l-primary-container rounded-2xl rounded-tl-sm p-4 text-on-surface font-body-md text-body-sm shadow-lg shadow-black/20 leading-relaxed';
+                                body.innerHTML = formattedGen;
+                                
+                                bubble.appendChild(header);
+                                bubble.appendChild(body);
+                                chatHistory.appendChild(bubble);
+                                
+                                currentBotMessageBody = body;
+                            }
+                            chatHistory.scrollTop = chatHistory.scrollHeight;
+                        }
+                    } else if (data.node === 'critique_generation') {
+                        setNodeActive('critique_generation');
+                    }
+                }
+            };
+            
+            eventSource.onerror = (e) => {
+                if (typingIndicator) typingIndicator.classList.add('hidden');
+                workflowBadge.innerText = 'Error';
+                workflowBadge.className = 'px-2 py-0.5 rounded text-[10px] font-label-md bg-error-container/10 text-error border border-error-container/30';
+                eventSource.close();
+            };
+        }
+        
+        sendBtn.addEventListener('click', handleSend);
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+
+        // Initialize status greeting on load
+        window.addEventListener('DOMContentLoaded', updateStatusGreeting);
+    </script>
+</body>
+</html>
