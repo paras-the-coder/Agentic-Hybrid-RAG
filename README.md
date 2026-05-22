@@ -1,6 +1,7 @@
 # 🧠 Agentic Hybrid RAG Assistant with Web Search Fallback & Self-Critique
 
 **Keywords:** `Agentic RAG`, `LangGraph`, `FastAPI`, `ChromaDB`, `Hybrid Reranking`, `Self-Critique`, `Llama-3`, `Groq`, `Tavily Web Search`, `AI Agent`
+
 An advanced **Retrieval-Augmented Generation (RAG)** system built with **LangGraph** that goes far beyond simple document Q&A. This agent autonomously retrieves, grades, rewrites, searches, generates, and critiques — producing reliable, hallucination-resistant answers from your PDF documents or the live internet.
 
 ---
