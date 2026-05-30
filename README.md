@@ -174,8 +174,8 @@ Agentic-Hybrid-RAG/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/agentic-hybrid-rag.git
-cd agentic-hybrid-rag
+git clone https://github.com/paras-the-coder/Agentic-Hybrid-RAG.git
+cd Agentic-Hybrid-RAG
 ```
 
 ### 2. Create a Virtual Environment
