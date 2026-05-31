@@ -13,3 +13,7 @@ tavily-python
 pydantic
 pinecone
 ragas
+fastapi
+uvicorn
+python-multipart
+sseclient-py
