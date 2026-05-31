@@ -4,16 +4,13 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
+from langchain_pinecone import PineconeVectorStore
+from dotenv import load_dotenv
 
-# Use langchain-chroma instead of deprecated langchain_community Chroma
-try:
-    from langchain_chroma import Chroma
-except ImportError:
-    from langchain_community.vectorstores import Chroma
+load_dotenv()
 
-# Define persistent storage directories relative to the project root (this file's parent dir)
+# Define local data directory for uploaded PDFs (relative to project root)
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_DIR = os.path.join(_PROJECT_ROOT, "chroma_db")
 DATA_DIR = os.path.join(_PROJECT_ROOT, "data")
 
 _embeddings_instance = None
@@ -31,10 +28,48 @@ def get_embeddings_model() -> HuggingFaceEmbeddings:
         )
     return _embeddings_instance
 
+# If you are downloading this Hugging Face model for the first time, 
+# temporarily comment out the three offline lines below using (Ctrl + /)
+# Once downloaded, uncomment them to resume offline mode.
+        # os.environ["HF_HUB_OFFLINE"] = "1"
+        # os.environ["TRANSFORMERS_OFFLINE"] = "1"
+        #         model_kwargs={"local_files_only": True} click (Ctrl + /)
+
+
+def get_pinecone_index_name() -> str:
+    """Returns the Pinecone index name from the environment."""
+    index_name = os.getenv("PINECONE_INDEX_NAME")
+    if not index_name:
+        raise EnvironmentError(
+            "PINECONE_INDEX_NAME is not set in .env. "
+            "Create a free index at https://app.pinecone.io and add it to your .env file."
+        )
+    return index_name
+
+
+def get_vectorstore() -> PineconeVectorStore:
+    """Returns a connected PineconeVectorStore instance using HuggingFace embeddings."""
+    api_key = os.getenv("PINECONE_API_KEY")
+    if not api_key:
+        raise EnvironmentError(
+            "PINECONE_API_KEY is not set in .env. "
+            "Get your free API key at https://app.pinecone.io and add it to your .env file."
+        )
+    
+    embeddings = get_embeddings_model()
+    index_name = get_pinecone_index_name()
+    
+    return PineconeVectorStore(
+        index_name=index_name,
+        embedding=embeddings,
+        pinecone_api_key=api_key,
+    )
+
+
 def ingest_pdf_directory(data_path: str = DATA_DIR) -> int:
     """
     Scans the data directory, parses all PDFs, chunks them semantically,
-    and indexes them into a persistent local ChromaDB instance using Hugging Face embeddings.
+    and indexes them into the Pinecone cloud vector database using Hugging Face embeddings.
     """
     if not os.path.exists(data_path):
         os.makedirs(data_path)
@@ -51,10 +86,10 @@ def ingest_pdf_directory(data_path: str = DATA_DIR) -> int:
                 loader = PyPDFLoader(file_path)
                 raw_documents.extend(loader.load())
             except Exception as e:
-                print(f"❌ Error parsing {file}: {e}")
+                print(f" Error parsing {file}: {e}")
 
     if not raw_documents:
-        print("⚠️ No valid PDF content extracted. Add PDFs to the data folder.")
+        print(" No valid PDF content extracted. Add PDFs to the data folder.")
         return 0
 
     print(f" Successfully extracted {len(raw_documents)} raw pages.")
@@ -76,35 +111,29 @@ def ingest_pdf_directory(data_path: str = DATA_DIR) -> int:
         source = os.path.basename(source_path)
         chunk.metadata['source'] = source
         page = chunk.metadata.get('page', 'Unknown')
+        # Pinecone metadata values must be strings, numbers, booleans, or lists of strings
+        chunk.metadata['page'] = int(page) if isinstance(page, (int, float)) else 0
         chunk.metadata['tracking_signature'] = f"Source: {source} | Page: {page} | Chunk ID: {i}"
         
     print(f" Split raw pages into {len(chunks)} optimized semantic chunks.")
 
-    # 3. Persistent Local Ingestion
-    print(f" Saving vectors to disk at: {DB_DIR}...")
+    # 3. Cloud Ingestion to Pinecone
+    print(f" Uploading vectors to Pinecone index: {get_pinecone_index_name()}...")
     embeddings = get_embeddings_model()
     
-    vectorstore = Chroma.from_documents(
+    PineconeVectorStore.from_documents(
         documents=chunks,
         embedding=embeddings,
-        persist_directory=DB_DIR
+        index_name=get_pinecone_index_name(),
+        pinecone_api_key=os.getenv("PINECONE_API_KEY"),
     )
     
-    print(" Vector database ingestion completed successfully!")
+    print(" Vector database ingestion to Pinecone completed successfully!")
     return len(chunks)
 
 def get_local_retriever(k_neighbors: int = 5):
-    """Connects to the existing local database on disk using Hugging Face embeddings."""
-    if not os.path.exists(DB_DIR):
-        raise FileNotFoundError(
-            f"Database directory '{DB_DIR}' not found. Run `ingest_pdf_directory()` first."
-        )
-        
-    embeddings = get_embeddings_model()
-    vectorstore = Chroma(
-        persist_directory=DB_DIR,
-        embedding_function=embeddings
-    )
+    """Connects to the Pinecone cloud index using Hugging Face embeddings."""
+    vectorstore = get_vectorstore()
     return vectorstore.as_retriever(search_kwargs={"k": k_neighbors})
 
 if __name__ == "__main__":

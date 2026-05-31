@@ -7,22 +7,33 @@ if sys.platform == "win32":
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 from dotenv import load_dotenv
-from src.database import ingest_pdf_directory, DB_DIR
+from src.database import get_pinecone_index_name
 
 # Load api keys from the local .env file
 load_dotenv()
 
 def run_agentic_rag():
-    print(" Step 1: Checking/Ingesting Local PDF Documents...")
-    # Check if vectors already exist, if not index them
-    if not os.path.exists(DB_DIR):
-        print(" Local Vector Database empty. Ingesting documents...")
-        total_chunks = ingest_pdf_directory()
-        if total_chunks == 0:
-            print(" Stop: Add a PDF to the 'data/' directory before running!")
-            return
-    else:
-        print("✅ Persistent ChromaDB database found on disk. Skipping ingestion.")
+    print(" Step 1: Verifying Pinecone Connection...")
+    
+    try:
+        index_name = get_pinecone_index_name()
+        print(f"Pinecone index '{index_name}' configured. Checking connectivity...")
+        
+        from pinecone import Pinecone
+        pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+        index = pc.Index(index_name)
+        stats = index.describe_index_stats()
+        total_vectors = stats.get("total_vector_count", 0)
+        print(f"✅ Connected to Pinecone! Index has {total_vectors} vectors stored.")
+        
+        if total_vectors == 0:
+            print(" No documents ingested yet. Use the web UI to upload PDFs, or run:")
+            print("   .\.venv\Scripts\python.exe -c \"from src.database import ingest_pdf_directory; ingest_pdf_directory()\"")
+            
+    except Exception as e:
+        print(f" Pinecone connection failed: {e}")
+        print(" Make sure PINECONE_API_KEY and PINECONE_INDEX_NAME are set in your .env file.")
+        return
 
     print("\n Step 2: Starting LangGraph RAG Agent System...")
 
