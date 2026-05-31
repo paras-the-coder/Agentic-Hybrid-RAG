@@ -13,6 +13,23 @@ pinned: false
 
 An advanced **Retrieval-Augmented Generation (RAG)** system built with **LangGraph** that goes far beyond simple document Q&A. This agent autonomously retrieves, grades, rewrites, searches, generates, and critiques — producing reliable, hallucination-resistant answers from your PDF documents or the live internet.
 
+> [!TIP]
+> **🚀 Live Demo**: Try the deployed web application directly on [Hugging Face Spaces](https://huggingface.co/spaces/Parask1234/agentic-hybrid-rag).
+
+---
+
+## 📂 How to Use the Live Demo
+
+This live demo is pre-loaded with **3 demo documents** in the Pinecone cloud database:
+1. **`Aiesl Employees service regulation.pdf`** — Covers employee leave policies, service rules, and regularization guidelines.
+2. **`MembershipHandbook.pdf`** — Details scheme eligibility, enrollment rules, and spouse/dependant policies.
+3. **`tsla-20251231-gen.pdf`** — Tesla's annual financial statements, corporate risks, and vehicle production data.
+
+### Actions you can take:
+* **Ask Questions**: Type your query in the chat bar. The system will search all indexed documents automatically (e.g., *"What is the eligibility criteria to join the scheme?"*).
+* **Target Filter**: Select a specific document from the **Target** dropdown at the top right to restrict search queries to just that document.
+* **Upload Your Own PDFs**: Click the **Upload PDF** button to index your own files. Once successfully uploaded, they will appear in the target dropdown and be available for querying immediately.
+
 ---
 
 ## 📖 What is RAG?
@@ -238,12 +255,16 @@ mkdir data
 # Copy your PDFs into the data/ folder
 ```
 
-To ingest the directory into Pinecone, run:
-```bash
-python src/database.py
 ```
 
-### 7. Run the Application
+### 7. How to Start Fresh (Clear Demo Data)
+
+If you are deploying your own version and want to remove the pre-loaded demo documents:
+1. Log in to your [Pinecone Console](https://app.pinecone.io).
+2. Open your `agentic-rag` index.
+3. Click **Delete all vectors** to clear out the database. Your Space/App will now start with `0 documents`, ready for your own custom uploads.
+
+### 8. Run the Application
 
 **Option A: Web Dashboard (Recommended)**
 
