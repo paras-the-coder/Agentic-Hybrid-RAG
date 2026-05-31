@@ -1,6 +1,6 @@
 # 🧠 Agentic Hybrid RAG Assistant with Web Search Fallback & Self-Critique
 
-**Keywords:** `Agentic RAG`, `LangGraph`, `FastAPI`, `ChromaDB`, `Hybrid Reranking`, `Self-Critique`, `Llama-3`, `Groq`, `Tavily Web Search`, `AI Agent`
+**Keywords:** `Agentic RAG`, `LangGraph`, `FastAPI`, `Pinecone`, `Hybrid Reranking`, `Self-Critique`, `Llama-3`, `Groq`, `Tavily Web Search`, `AI Agent`
 
 An advanced **Retrieval-Augmented Generation (RAG)** system built with **LangGraph** that goes far beyond simple document Q&A. This agent autonomously retrieves, grades, rewrites, searches, generates, and critiques — producing reliable, hallucination-resistant answers from your PDF documents or the live internet.
 
@@ -42,56 +42,56 @@ The core of this system is a **LangGraph state machine** — a directed graph wh
                         └────────┬────────┘
                                  │
                                  ▼
-                   ┌─────────────────────────┐
-                   │  RETRIEVE (k=20 → top 4)│
-                   │  Hybrid Semantic+Lexical │
-                   │  Reranking & Dedup       │
-                   └────────────┬────────────┘
-                                │
-                                ▼
-                   ┌─────────────────────────┐
-                   │   GRADE DOCUMENTS       │
-                   │   LLM relevance check   │
-                   │   (parallel, 4 chunks)  │
-                   └────────────┬────────────┘
-                                │
-                   ┌────────────┴────────────┐
-                   │    Conditional Edge     │
-                   │  Any chunk relevant?    │
-                   ▼                         ▼
-        ┌──────────────────┐     ┌──────────────────────┐
-        │     GENERATE     │     │  TRANSFORM QUERY &   │
-        │  Answer from PDF │     │  WEB SEARCH (Tavily) │
-        └────────┬─────────┘     └──────────┬───────────┘
-                 │                          │
-                 │         ┌────────────────┘
-                 │         │
-                 ▼         ▼
-        ┌──────────────────────┐
-        │    GENERATE ANSWER   │
-        │   (from web or PDF)  │
-        └──────────┬───────────┘
-                   │
-                   ▼
-        ┌──────────────────────┐
-        │  CRITIQUE GENERATION │◄──────┐
-        │  Hallucination check │       │
-        └──────────┬───────────┘       │
-                   │                   │
-          ┌────────┴────────┐          │
-          │ Conditional Edge│          │
-          │  Critique Pass? │          │
-          ▼                 ▼          │
-    ┌───────────┐   ┌──────────────┐   │
-    │  ✅ END   │   │ REGENERATE   │───┘
-    │  Stream   │   │ REGENERATE   │
-    │  Answer   │   └──────────────┘
-    └───────────┘
+                    ┌─────────────────────────┐
+                    │  RETRIEVE (k=20 → top 4)│
+                    │  Hybrid Semantic+Lexical │
+                    │  Reranking & Dedup       │
+                    └────────────┬────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────────┐
+                    │   GRADE DOCUMENTS       │
+                    │   LLM relevance check   │
+                    │   (parallel, 4 chunks)  │
+                    └────────────┬────────────┘
+                                 │
+                    ┌────────────┴────────────┐
+                    │    Conditional Edge     │
+                    │  Any chunk relevant?    │
+                    ▼                         ▼
+         ┌──────────────────┐     ┌──────────────────────┐
+         │     GENERATE     │     │  TRANSFORM QUERY &   │
+         │  Answer from PDF │     │  WEB SEARCH (Tavily) │
+         └────────┬─────────┘     └──────────┬───────────┘
+                  │                          │
+                  │         ┌────────────────┘
+                  │         │
+                  ▼         ▼
+         ┌──────────────────────┐
+         │    GENERATE ANSWER   │
+         │   (from web or PDF)  │
+         └──────────┬───────────┘
+                    │
+                    ▼
+         ┌──────────────────────┐
+         │  CRITIQUE GENERATION │◄──────┐
+         │  Hallucination check │       │
+         └──────────┬───────────┘       │
+                    │                   │
+           ┌────────┴────────┐          │
+           │ Conditional Edge│          │
+           │  Critique Pass? │          │
+           ▼                 ▼          │
+     ┌───────────┐   ┌──────────────┐   │
+     │  ✅ END   │   │ REGENERATE   │───┘
+     │  Stream   │   │ REGENERATE   │
+     │  Answer   │   └──────────────┘
+     └───────────┘
 ```
 
 ### How It Works (Step by Step)
 
-1. **Retrieve** — The user's question is embedded and searched against ChromaDB. The top 20 candidates are retrieved, deduplicated, and reranked using a hybrid semantic + lexical score. Only the **top 4 chunks** survive.
+1. **Retrieve** — The user's question is embedded and searched against Pinecone. The top 20 candidates are retrieved, deduplicated, and reranked using a hybrid semantic + lexical score. Only the **top 4 chunks** survive.
 
 2. **Grade Documents** — Each of the 4 chunks is sent to the LLM in **parallel** with the question: *"Is this chunk actually relevant?"*. The LLM grades each one `yes` or `no`. If all chunks are graded as irrelevant, the system pivots to web search.
 
@@ -110,7 +110,7 @@ The core of this system is a **LangGraph state machine** — a directed graph wh
 | Feature | Description |
 |---|---|
 | **LangGraph Workflow Orchestration** | Stateful, cyclical agent graph with conditional routing and retry loops |
-| **ChromaDB Vector Database** | Persistent local vector storage with metadata filtering for multi-document support |
+| **Pinecone Cloud Vector Database** | Production-ready, cloud-hosted vector storage with metadata filtering for multi-document support |
 | **Hybrid Semantic + Lexical Reranking** | Combined scoring (`0.6×semantic + 0.4×lexical`) for precision retrieval |
 | **Tavily Web Search Fallback** | Automatic fallback to live internet search when PDF context is insufficient |
 | **Query Rewriting** | LLM-powered query transformation for optimized web search results |
@@ -120,7 +120,7 @@ The core of this system is a **LangGraph state machine** — a directed graph wh
 | **Metadata Citations** | Every answer includes page-level source citations from the original PDF |
 | **Dynamic Dashboard** | A live visual workflow tracker showing which agent node is currently active |
 | **Multi-Document Support** | Upload multiple PDFs and query them individually via a target document selector |
-| **Persistent Vector DB** | ChromaDB persists to disk — no re-ingestion needed between server restarts |
+| **Stateless Cloud Hosting Ready** | Completely decoupled database layer allows deploying on free ephemeral hosts (Render, Hugging Face Spaces) without data loss |
 
 ---
 
@@ -130,7 +130,7 @@ The core of this system is a **LangGraph state machine** — a directed graph wh
 |---|---|---|
 | **LLM** | [Groq](https://groq.com) (Llama-3.3-70B) | Ultra-fast inference via specialized LPU hardware |
 | **Embeddings** | [BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) | Free, local 384-dim dense embeddings (HuggingFace) |
-| **Vector Database** | [ChromaDB](https://www.trychroma.com/) | Persistent local vector storage with metadata filtering |
+| **Vector Database** | [Pinecone](https://www.pinecone.io/) | Production-ready managed cloud vector database |
 | **Agent Framework** | [LangGraph](https://langchain-ai.github.io/langgraph/) | Stateful graph orchestration with conditional edges and cycles |
 | **Chain Framework** | [LangChain](https://python.langchain.com/) | Prompt templates, output parsers, document loaders |
 | **Web Search** | [Tavily](https://tavily.com/) | AI-optimized search API for real-time internet fallback |
@@ -144,21 +144,20 @@ The core of this system is a **LangGraph state machine** — a directed graph wh
 
 ```
 Agentic-Hybrid-RAG/
-├── main.py                # CLI entry point — ingest PDFs and chat in terminal
+├── main.py                # CLI entry point — verify Pinecone connection and chat in terminal
 ├── server.py              # FastAPI backend — upload, status, and SSE chat endpoints
 ├── index.html             # Frontend dashboard — dark-mode UI with live workflow tracker
 ├── requirements.txt       # Python dependencies
 ├── pyproject.toml         # Project metadata and dependency versions
-├── .env                   # API keys (GROQ_API_KEY, TAVILY) — never push to GitHub!
-├── .gitignore             # Excludes .env, chroma_db/, data/, .venv/
+├── .env                   # API keys (GROQ_API_KEY, TAVILY, PINECONE_API_KEY, PINECONE_INDEX_NAME)
+├── .gitignore             # Excludes .env, data/, .venv/
 │
 ├── src/
 │   ├── __init__.py        # Package initializer
-│   ├── database.py        # PDF ingestion, chunking, embedding, and ChromaDB storage
+│   ├── database.py        # PDF ingestion, chunking, embedding, and Pinecone connector
 │   └── graph.py           # LangGraph state machine — retrieve, grade, search, generate, critique
 │
 ├── data/                  # Drop your PDF files here for ingestion (git-ignored)
-├── chroma_db/             # Persistent vector database on disk (git-ignored)
 └── .venv/                 # Python virtual environment (git-ignored)
 ```
 
@@ -168,6 +167,7 @@ Agentic-Hybrid-RAG/
 
 ### Prerequisites
 - Python 3.13+
+- A free [Pinecone Account](https://app.pinecone.io/)
 - A free [Groq API key](https://console.groq.com/)
 - A free [Tavily API key](https://tavily.com/)
 
@@ -190,22 +190,37 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3. Install Dependencies
+### ### 3. Install Dependencies using UV (Recommended) or PIP
 
+Using UV:
+```bash
+uv sync
+```
+
+Using Pip:
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configure Environment Variables
+### 4. Create your Pinecone Index
+1. Log in to [Pinecone](https://app.pinecone.io/).
+2. Click **Create Index** with the following details:
+   - **Name**: `agentic-rag` (or whatever you prefer)
+   - **Dimensions**: `384` (Must be 384 to match the local `BAAI/bge-small-en-v1.5` embeddings)
+   - **Metric**: `cosine`
+
+### 5. Configure Environment Variables
 
 Create a `.env` file in the project root:
 
 ```env
 GROQ_API_KEY=your_groq_api_key_here
 TAVILY=your_tavily_api_key_here
+PINECONE_API_KEY=your_pinecone_api_key_here
+PINECONE_INDEX_NAME=agentic-rag
 ```
 
-### 5. Add Your PDF Documents
+### 6. Add and Ingest Your PDF Documents
 
 Place your PDF files in the `data/` directory:
 
@@ -214,7 +229,12 @@ mkdir data
 # Copy your PDFs into the data/ folder
 ```
 
-### 6. Run the Application
+To ingest the directory into Pinecone, run:
+```bash
+python src/database.py
+```
+
+### 7. Run the Application
 
 **Option A: Web Dashboard (Recommended)**
 
@@ -230,7 +250,7 @@ Open your browser to `http://localhost:8000`. Upload PDFs through the UI, select
 python main.py
 ```
 
-This will ingest PDFs from `data/`, build the vector database, and start an interactive terminal chatbot.
+This will verify the connection to your Pinecone index and start an interactive terminal chatbot.
 
 ---
 
@@ -240,37 +260,15 @@ Once you have uploaded a document (e.g., a Tesla 10-K annual report), try these:
 
 ```
 📄 PDF-Grounded Queries:
-• "What was the total revenue for Tesla in 2025, and how did it compare to 2024?"
+• "What was the total revenue for Tesla in 2024, and how did it compare to 2023?"
 • "Summarize the major risk factors mentioned in the annual report."
 • "What are Tesla's Research and Development expenses, and what drove the year-over-year change?"
-• "According to the balance sheet, what was the cash and cash equivalents as of December 31, 2025?"
+• "According to the balance sheet, what was the cash and cash equivalents as of December 31, 2024?"
 
 🌐 Web Fallback Queries (answer not in PDF):
 • "Compare Tesla's 2025 vehicle production numbers against BYD's for the same year."
 • "What are the latest AI regulations proposed by the European Union?"
 ```
-
----
-
-## 📊 Evaluation & Testing
-
-> Most RAG projects skip evaluation entirely. This section documents the specific reliability tests performed on this system.
-
-### Hallucination Testing
-- Verified that the system **does not fabricate** information when the answer exists in the PDF. The self-critique node catches unsupported claims and forces regeneration with corrective feedback.
-- Tested with ambiguous queries to ensure the LLM responds with *"I could not find relevant information"* rather than inventing answers.
-
-### Retrieval Accuracy
-- Validated that the hybrid reranker (semantic + lexical) correctly surfaces the most relevant chunks for domain-specific financial and legal terminology.
-- Confirmed that metadata filtering (`source` field) prevents cross-document contamination when multiple PDFs are loaded.
-
-### Web Fallback Accuracy
-- Tested queries that are intentionally outside the PDF scope (e.g., comparing Tesla with BYD). Verified that the grader correctly rejects all PDF chunks, triggers query rewriting, and falls back to Tavily web search.
-- Confirmed that web search results are summarized when exceeding 1500 characters to stay within LLM context limits.
-
-### Critique Validation
-- Verified the critique loop by feeding intentionally weak generations. The critic correctly returned `"no"` with a reason, and the system regenerated the answer with the feedback injected into the prompt.
-- Confirmed that the retry counter prevents infinite loops (max 1 retry after initial generation).
 
 ---
 
