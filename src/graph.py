@@ -108,14 +108,9 @@ def retrieve(state: GraphState) -> Dict[str, Any]:
     question = state["question"]
     source_filter = state.get("source")
     
-    from src.database import DB_DIR, get_embeddings_model
-    try:
-        from langchain_chroma import Chroma
-    except ImportError:
-        from langchain_community.vectorstores import Chroma
+    from src.database import get_vectorstore
         
-    embeddings = get_embeddings_model()
-    vectorstore = Chroma(persist_directory=DB_DIR, embedding_function=embeddings)
+    vectorstore = get_vectorstore()
     
     # Setup document metadata filtering
     filter_dict = None
@@ -124,6 +119,7 @@ def retrieve(state: GraphState) -> Dict[str, Any]:
         print(f"-> Filtering retrieval by document source: {filter_dict['source']}")
     
     # Retrieve top 20 candidates
+    # Pinecone returns (Document, score) where score is cosine similarity (0-1, higher = more similar)
     docs_with_scores = vectorstore.similarity_search_with_score(question, k=20, filter=filter_dict)
     
     # Normalize path and deduplicate based on content
@@ -136,7 +132,8 @@ def retrieve(state: GraphState) -> Dict[str, Any]:
         cleaned = " ".join(doc.page_content.split())
         if cleaned not in seen_contents:
             seen_contents.add(cleaned)
-            similarity = max(0.0, min(1.0, 1.0 - (score / 2.0)))
+            # Pinecone cosine similarity is already 0-1 (higher = more similar)
+            similarity = max(0.0, min(1.0, score))
             doc.metadata["score"] = similarity
             unique_docs_with_scores.append((doc, similarity))
             
@@ -180,6 +177,7 @@ def retrieve(state: GraphState) -> Dict[str, Any]:
         "confidence": "Low",
         "source": source_filter
     }
+
 
 def grade_documents(state: GraphState) -> Dict[str, Any]:
     print("--- GRADING RETRIEVED DOCUMENTS ---")

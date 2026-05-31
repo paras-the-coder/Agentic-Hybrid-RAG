@@ -8,7 +8,6 @@ from fastapi.responses import StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_core.documents import Document
 
 # Fix Windows console encoding
 if sys.platform == "win32":
@@ -18,7 +17,7 @@ if sys.platform == "win32":
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from src.graph import app as graph_app
-from src.database import DB_DIR, DATA_DIR, get_embeddings_model
+from src.database import DATA_DIR, get_embeddings_model, get_vectorstore, get_pinecone_index_name
 
 app = FastAPI(title="Agentic RAG API")
 
@@ -40,11 +39,10 @@ async def get_index():
 async def upload_file(file: UploadFile = File(...)):
     """
     Accepts a PDF document upload, splits it into semantic chunks, 
-    injects tracking signatures, and appends it to the persistent ChromaDB.
+    injects tracking signatures, and uploads them to the Pinecone cloud index.
     """
     # 1. Create storage folders if missing
     os.makedirs(DATA_DIR, exist_ok=True)
-    os.makedirs(DB_DIR, exist_ok=True)
     
     file_path = os.path.join(DATA_DIR, file.filename)
     
@@ -73,16 +71,12 @@ async def upload_file(file: UploadFile = File(...)):
             source = os.path.basename(source_path)
             chunk.metadata['source'] = source
             page = chunk.metadata.get('page', 'Unknown')
+            # Pinecone metadata values must be strings, numbers, booleans, or lists of strings
+            chunk.metadata['page'] = int(page) if isinstance(page, (int, float)) else 0
             chunk.metadata['tracking_signature'] = f"Source: {source} | Page: {page} | Chunk ID: {i}"
             
-        # 5. Connect and append to Chroma
-        try:
-            from langchain_chroma import Chroma
-        except ImportError:
-            from langchain_community.vectorstores import Chroma
-            
-        embeddings = get_embeddings_model()
-        vectorstore = Chroma(persist_directory=DB_DIR, embedding_function=embeddings)
+        # 5. Connect and upload to Pinecone
+        vectorstore = get_vectorstore()
         vectorstore.add_documents(chunks)
         
         return {
@@ -102,33 +96,48 @@ async def upload_file(file: UploadFile = File(...)):
 @app.get("/api/status")
 async def get_status():
     """
-    Queries the Chroma vector database to see exactly what files are currently ingested.
+    Queries the Pinecone vector index to see what files are currently ingested.
     Returns status, total number of chunks, and a list of distinct documents.
     """
-    if not os.path.exists(DB_DIR):
-        return {
-            "status": "success",
-            "total_documents": 0,
-            "total_chunks": 0,
-            "documents": []
-        }
-    
     try:
-        try:
-            from langchain_chroma import Chroma
-        except ImportError:
-            from langchain_community.vectorstores import Chroma
-            
-        embeddings = get_embeddings_model()
-        vectorstore = Chroma(persist_directory=DB_DIR, embedding_function=embeddings)
+        from pinecone import Pinecone
         
-        collection = vectorstore._collection
-        res = collection.get(include=["metadatas"])
-        metadatas = res.get("metadatas", [])
+        api_key = os.getenv("PINECONE_API_KEY")
+        if not api_key:
+            return {
+                "status": "error",
+                "message": "PINECONE_API_KEY is not set in environment variables."
+            }
+        
+        pc = Pinecone(api_key=api_key)
+        index_name = get_pinecone_index_name()
+        index = pc.Index(index_name)
+        
+        # Get index statistics
+        stats = index.describe_index_stats()
+        total_vectors = stats.get("total_vector_count", 0)
+        
+        if total_vectors == 0:
+            return {
+                "status": "success",
+                "total_documents": 0,
+                "total_chunks": 0,
+                "documents": []
+            }
+        
+        # Query with a dummy vector to fetch stored document sources
+        # Use the embedding dimension (384 for bge-small-en-v1.5)
+        dummy_vector = [0.0] * 384
+        results = index.query(
+            vector=dummy_vector,
+            top_k=min(total_vectors, 10000),
+            include_metadata=True
+        )
         
         sources = set()
-        for meta in metadatas:
-            if meta and "source" in meta:
+        for match in results.get("matches", []):
+            meta = match.get("metadata", {})
+            if "source" in meta:
                 basename = os.path.basename(meta["source"])
                 sources.add(basename)
                 
@@ -136,7 +145,7 @@ async def get_status():
         return {
             "status": "success",
             "total_documents": len(doc_list),
-            "total_chunks": len(metadatas),
+            "total_chunks": total_vectors,
             "documents": doc_list
         }
     except Exception as e:
@@ -189,11 +198,6 @@ async def chat_stream(
 
 if __name__ == "__main__":
     import uvicorn
-    # Make sure DB_DIR exists so retriever doesn't crash on import
-    from src.database import ingest_pdf_directory
-    if not os.path.exists(DB_DIR):
-        print(" Database directory missing. Ingesting 'data/' directory first...")
-        ingest_pdf_directory()
-        
     print(" Starting Agentic RAG Web Server on http://localhost:8000")
+    print(f" Connected to Pinecone index: {get_pinecone_index_name()}")
     uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
