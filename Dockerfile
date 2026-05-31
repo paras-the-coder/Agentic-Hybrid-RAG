@@ -15,6 +15,10 @@ COPY pyproject.toml .
 # Install dependencies using pip
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Pre-download and cache the embedding model during Docker build
+RUN python -c "from langchain_huggingface import HuggingFaceEmbeddings; HuggingFaceEmbeddings(model_name='BAAI/bge-small-en-v1.5')"
+
+
 # Copy application files
 COPY . .
 

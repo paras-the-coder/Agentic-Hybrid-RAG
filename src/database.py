@@ -19,21 +19,23 @@ def get_embeddings_model() -> HuggingFaceEmbeddings:
     """Initializes and returns a free, local open-source Hugging Face embedding model."""
     global _embeddings_instance
     if _embeddings_instance is None:
-        import os
-        os.environ["HF_HUB_OFFLINE"] = "1"
-        os.environ["TRANSFORMERS_OFFLINE"] = "1"
+        # Allow online mode so the model downloads successfully if not cached
         _embeddings_instance = HuggingFaceEmbeddings(
-            model_name="BAAI/bge-small-en-v1.5",
-            model_kwargs={"local_files_only": True}
+            model_name="BAAI/bge-small-en-v1.5"
         )
     return _embeddings_instance
 
-# If you are downloading this Hugging Face model for the first time, 
-# temporarily comment out the three offline lines below using (Ctrl + /)
+# If you want to run this on your local machine then, 
+# add these lines inside the above function
 # Once downloaded, uncomment them to resume offline mode.
+#   if _embeddings_instance is None:
         # os.environ["HF_HUB_OFFLINE"] = "1"
         # os.environ["TRANSFORMERS_OFFLINE"] = "1"
-        #         model_kwargs={"local_files_only": True} click (Ctrl + /)
+        # _embeddings_instance = HuggingFaceEmbeddings(
+    #          model_name="BAAI/bge-small-en-v1.5",
+    #          model_kwargs={"local_files_only": True}
+    #     )
+    # return _embeddings_instance
 
 
 def get_pinecone_index_name() -> str:
