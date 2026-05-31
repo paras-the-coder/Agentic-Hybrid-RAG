@@ -1,3 +1,12 @@
+---
+title: Agentic Hybrid RAG
+emoji: 🧠
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # 🧠 Agentic Hybrid RAG Assistant with Web Search Fallback & Self-Critique
 
 **Keywords:** `Agentic RAG`, `LangGraph`, `FastAPI`, `Pinecone`, `Hybrid Reranking`, `Self-Critique`, `Llama-3`, `Groq`, `Tavily Web Search`, `AI Agent`
