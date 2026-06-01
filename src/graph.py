@@ -295,14 +295,20 @@ def transform_query_and_search(state: GraphState) -> Dict[str, Any]:
         results = search_results["results"]
         
     if results and len(results) > 0:
-        top_result = results[0]
-        content = top_result.get("content", top_result.get("text", str(top_result)))
+        # Combine the top 3 results to get a balanced, accurate context
+        combined_contents = []
+        for idx, r in enumerate(results[:3], 1):
+            c = r.get("content", r.get("text", str(r)))
+            url = r.get("url", "unknown source")
+            combined_contents.append(f"[Web Result #{idx}] Source: {url}\nContent: {c}")
+            
+        content = "\n\n---\n\n".join(combined_contents)
         
-        # Summarize ONLY if length is greater than 1500 characters
-        if len(content) > 1500:
-            print("--- SUMMARIZING TOP WEB RESULT (>1500 chars) ---")
+        # Summarize only if the combined content is exceptionally long (> 4000 characters)
+        if len(content) > 4000:
+            print("--- SUMMARIZING COMBINED WEB RESULTS (>4000 chars) ---")
             summary_prompt = ChatPromptTemplate.from_messages([
-                ("system", "You are an expert summarizer. Summarize this web search result concisely, keeping it under 200 words."),
+                ("system", "You are an expert summarizer. Combine and summarize these web search results concisely, keeping it under 300 words while retaining all key facts, dates, names, and statistics."),
                 ("human", "Web content:\n\n{content}")
             ])
             summary_chain = summary_prompt | llm
@@ -310,9 +316,9 @@ def transform_query_and_search(state: GraphState) -> Dict[str, Any]:
                 content = summary_chain.invoke({"content": content}).content.strip()
             except Exception as e:
                 print(f"Error summarizing web content: {e}. Truncating instead.")
-                content = content[:1500] + "\n... [truncated]"
+                content = content[:4000] + "\n... [truncated]"
         else:
-            print("--- USING RAW TOP WEB RESULT ---")
+            print("--- USING RAW COMBINED WEB RESULTS ---")
             
         web_results = content
     else:
@@ -320,6 +326,7 @@ def transform_query_and_search(state: GraphState) -> Dict[str, Any]:
         
     new_doc = Document(page_content=web_results, metadata={"source": "web_fallback", "score": 0.85})
     return {"documents": [new_doc], "question": question}
+
 
 def critique_generation(state: GraphState) -> Dict[str, Any]:
     print("--- CRITIQUING GENERATION ---")
