@@ -31,10 +31,10 @@ os.environ["TAVILY_API_KEY"] = _tavily_key
 # Import Tavily AFTER setting the env var so it picks up the key
 try:
     from langchain_tavily import TavilySearch
-    web_search_tool = TavilySearch(max_results=3)
+    web_search_tool = TavilySearch(max_results=5)
 except ImportError:
     from langchain_community.tools.tavily_search import TavilySearchResults
-    web_search_tool = TavilySearchResults(k=3)
+    web_search_tool = TavilySearchResults(k=5)
 
 
 # 2. Define Graph State
