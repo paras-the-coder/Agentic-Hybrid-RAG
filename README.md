@@ -14,11 +14,11 @@ pinned: false
 An advanced **Retrieval-Augmented Generation (RAG)** system built with **LangGraph** that goes far beyond simple document Q&A. This agent autonomously retrieves, grades, rewrites, searches, generates, and critiques — producing reliable, hallucination-resistant answers from your PDF documents or the live internet.
 
 > [!TIP]
-> **🚀 Live Demo**: Try the deployed web application directly on [Hugging Face Spaces](https://huggingface.co/spaces/Parask1234/agentic-hybrid-rag).
+> **Live Demo**: Try the deployed web application directly on [Hugging Face Spaces](https://huggingface.co/spaces/Parask1234/agentic-hybrid-rag).
 
 ---
 
-## 📂 How to Use the Live Demo
+## How to Use the Live Demo
 
 This live demo is pre-loaded with **3 demo documents** in the Pinecone cloud database:
 1. **`Aiesl Employees service regulation.pdf`** — Covers employee leave policies, service rules, and regularization guidelines.
@@ -32,11 +32,11 @@ This live demo is pre-loaded with **3 demo documents** in the Pinecone cloud dat
 
 ---
 
-## 📖 What is RAG?
+## What is RAG?
 
 **Retrieval-Augmented Generation (RAG)** is a technique where an AI model doesn't rely solely on its training data to answer questions. Instead, it first **retrieves** relevant text from an external knowledge source (like a PDF or database) and then **generates** an answer grounded in that retrieved context. This dramatically reduces hallucinations compared to a standalone LLM.
 
-## 🔄 Normal RAG vs. Agentic RAG
+## Normal RAG vs. Agentic RAG
 
 A **standard RAG** pipeline is linear and fragile — it retrieves chunks, feeds them to an LLM, and blindly returns whatever the LLM produces. There is no verification, no fallback, and no self-correction. If the retriever pulls the wrong paragraphs, the LLM hallucinates confidently with zero safety net.
 
@@ -48,7 +48,7 @@ A **standard RAG** pipeline is linear and fragile — it retrieves chunks, feeds
 
 This creates a self-correcting, multi-path reasoning system that is significantly more reliable than traditional RAG.
 
-## 🧩 Why Hybrid RAG Matters
+## Why Hybrid RAG Matters
 
 This project implements a **hybrid reranking** strategy that combines two retrieval signals:
 - **Semantic similarity** (dense vector cosine distance) captures conceptual meaning.
@@ -58,7 +58,7 @@ By blending both signals (`60% semantic + 40% lexical`), the system retrieves fa
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 The core of this system is a **LangGraph state machine** — a directed graph where each node performs one step of the reasoning pipeline, and conditional edges route the flow based on intermediate results.
 
@@ -150,7 +150,7 @@ The core of this system is a **LangGraph state machine** — a directed graph wh
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology | Purpose |
 |---|---|---|
@@ -166,7 +166,7 @@ The core of this system is a **LangGraph state machine** — a directed graph wh
 
 ---
 
-## 📂 Folder Structure
+## Folder Structure
 
 ```
 Agentic-Hybrid-RAG/
@@ -189,7 +189,7 @@ Agentic-Hybrid-RAG/
 
 ---
 
-## 🚀 Setup Instructions
+## Setup Instructions
 
 ### Prerequisites
 - Python 3.13+
@@ -300,7 +300,7 @@ Once you have uploaded a document (e.g., a Tesla 10-K annual report), try these:
 
 ---
 
-## ⚖️ Challenges & Tradeoffs
+## Challenges & Tradeoffs
 
 ### Groq Free-Tier Token Limits
 The Groq free tier imposes strict Tokens-Per-Minute (TPM) and Requests-Per-Minute (RPM) limits. Grading 16 chunks in parallel would instantly hit rate limits and cause failures. **Solution:** We implemented local hybrid reranking to compress candidates from 16 to 4 before sending them to the LLM, reducing token usage by 4x.
@@ -322,7 +322,7 @@ Every safety mechanism (grading, critique, retry) adds LLM calls and latency. A 
 
 ---
 
-## 🔮 Future Improvements
+## Future Improvements
 
 - **Conversational Memory** — Add chat history to the LangGraph state so the agent can handle follow-up questions and multi-turn conversations.
 - **Multi-Hop Reasoning** — Decompose complex queries into sub-questions, retrieve context for each, and synthesize a combined answer.
