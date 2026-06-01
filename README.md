@@ -216,7 +216,7 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-### ### 3. Install Dependencies using UV (Recommended) or PIP
+### 3. Install Dependencies using UV (Recommended) or PIP
 
 Using UV:
 ```bash
@@ -253,8 +253,6 @@ Place your PDF files in the `data/` directory:
 ```bash
 mkdir data
 # Copy your PDFs into the data/ folder
-```
-
 ```
 
 ### 7. How to Start Fresh (Clear Demo Data)
