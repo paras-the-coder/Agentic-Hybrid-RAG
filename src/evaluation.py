@@ -214,53 +214,69 @@ def run_evaluation():
     basic_results = []
     agentic_results = []
     
+    eval_dir = os.path.join(_PROJECT_ROOT, "evaluation")
+    prev_results_path = os.path.join(eval_dir, "comparison_results.json")
+    if os.path.exists(prev_results_path):
+        try:
+            with open(prev_results_path, "r", encoding="utf-8") as f:
+                prev_data = json.load(f)
+                if "basic_rag" in prev_data and "per_query" in prev_data["basic_rag"]:
+                    cached_basic = prev_data["basic_rag"]["per_query"]
+                    if len(cached_basic) == len(qa_pairs):
+                        basic_results = cached_basic
+                        print("♻️ Loaded cached Basic RAG results from comparison_results.json. Skipping Basic RAG execution!")
+        except Exception as e:
+            print(f"⚠️ Failed to load cached Basic RAG results: {e}. Re-running Basic RAG...")
+            basic_results = []
+
     # --- BASIC RAG RUN ---
-    print("\n🚀 Running Basic RAG evaluation...")
-    basic_halluc_counts = {}
-    for idx, row in enumerate(qa_pairs):
-        q = row["question"]
-        gt = row["ground_truth"]
-        exp_doc = row["expected_document"]
-        
-        print(f"[{idx+1}/{len(qa_pairs)}] Question: {q[:60]}...")
-        
-        start = time.time()
-        res = run_basic_rag(q)
-        latency = time.time() - start
-        
-        ans = res["answer"]
-        docs = res["documents"]
-        ret_text = "\n\n".join([doc.page_content for doc in docs])
-        
-        # Metrics
-        kw_score = calculate_keyword_score(ret_text, gt)
-        emb_ret_score = calculate_embedding_similarity(ret_text, gt)
-        retrieval_score = 0.5 * kw_score + 0.5 * emb_ret_score
-        
-        ans_sim = calculate_embedding_similarity(ans, gt)
-        doc_hit = check_document_hit(docs, exp_doc)
-        
-        # Sample hallucination checks (first 3 for each document source)
-        if basic_halluc_counts.get(exp_doc, 0) < 3:
-            print(f"-> Evaluating Hallucination (Sample check for {exp_doc})...")
-            halluc = check_hallucination(ret_text, ans)
-            basic_halluc_counts[exp_doc] = basic_halluc_counts.get(exp_doc, 0) + 1
-        else:
-            halluc = "SKIPPED"
-        
-        basic_results.append({
-            "question": q,
-            "ground_truth": gt,
-            "answer": ans,
-            "retrieval_score": retrieval_score,
-            "ans_similarity": ans_sim,
-            "doc_hit": doc_hit,
-            "hallucination": halluc,
-            "latency": latency
-        })
-        
-        # Gentle rate limit throttle
-        time.sleep(1.0)
+    if not basic_results:
+        print("\n🚀 Running Basic RAG evaluation...")
+        basic_halluc_counts = {}
+        for idx, row in enumerate(qa_pairs):
+            q = row["question"]
+            gt = row["ground_truth"]
+            exp_doc = row["expected_document"]
+            
+            print(f"[{idx+1}/{len(qa_pairs)}] Question: {q[:60]}...")
+            
+            start = time.time()
+            res = run_basic_rag(q)
+            latency = time.time() - start
+            
+            ans = res["answer"]
+            docs = res["documents"]
+            ret_text = "\n\n".join([doc.page_content for doc in docs])
+            
+            # Metrics
+            kw_score = calculate_keyword_score(ret_text, gt)
+            emb_ret_score = calculate_embedding_similarity(ret_text, gt)
+            retrieval_score = 0.5 * kw_score + 0.5 * emb_ret_score
+            
+            ans_sim = calculate_embedding_similarity(ans, gt)
+            doc_hit = check_document_hit(docs, exp_doc)
+            
+            # Sample hallucination checks (first 3 for each document source)
+            if basic_halluc_counts.get(exp_doc, 0) < 3:
+                print(f"-> Evaluating Hallucination (Sample check for {exp_doc})...")
+                halluc = check_hallucination(ret_text, ans)
+                basic_halluc_counts[exp_doc] = basic_halluc_counts.get(exp_doc, 0) + 1
+            else:
+                halluc = "SKIPPED"
+            
+            basic_results.append({
+                "question": q,
+                "ground_truth": gt,
+                "answer": ans,
+                "retrieval_score": retrieval_score,
+                "ans_similarity": ans_sim,
+                "doc_hit": doc_hit,
+                "hallucination": halluc,
+                "latency": latency
+            })
+            
+            # Gentle rate limit throttle
+            time.sleep(1.0)
         
     # --- AGENTIC RAG RUN ---
     print("\n🚀 Running Agentic Hybrid RAG evaluation...")

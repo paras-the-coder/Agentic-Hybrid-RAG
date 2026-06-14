@@ -6,12 +6,12 @@ This report compares **Basic RAG** against **Agentic Hybrid RAG** on our curated
 
 | Metric | Basic RAG | Agentic Hybrid RAG |
 | :--- | :---: | :---: |
-| **Retrieval Score (Hybrid)** | 78.0% | 75.5% |
+| **Retrieval Score (Hybrid)** | 78.0% | 77.0% |
 | **Document Hit Rate** | 100.0% | 93.3% |
-| **Answer Similarity (Cosine)** | 0.855 | 0.854 |
+| **Answer Similarity (Cosine)** | 0.855 | 0.856 |
 | **Strict Hallucination Rate** | 0.0% | 0.0% |
 | **Lenient Hallucination Rate** | 0.0% | 0.0% |
-| **Average Latency** | 12.04s | 54.80s |
+| **Average Latency** | 11.90s | 16.91s |
 
 ---
 

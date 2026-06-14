@@ -381,6 +381,18 @@ def critique_generation(state: GraphState) -> Dict[str, Any]:
         return {"critique_feedback": "", "retry_count": retry_count, "confidence": confidence}
 
 # 5. Define Conditional Routing Logic
+def decide_post_retrieve(state: GraphState) -> str:
+    documents = state.get("documents", [])
+    local_similarities = [doc.metadata.get("score", 0.0) for doc in documents]
+    max_similarity = max(local_similarities) if local_similarities else 0.0
+    
+    if max_similarity >= 0.72:
+        print(f"--- DECISION: FAST-PATH DETECTED (Max similarity {max_similarity:.4f} >= 0.72). Routing directly to Generate! ---")
+        return "generate"
+    else:
+        print(f"--- DECISION: STANDARD PATH DETECTED (Max similarity {max_similarity:.4f} < 0.72). Routing to Grade Documents. ---")
+        return "grade_documents"
+
 def decide_to_generate(state: GraphState) -> str:
     if state.get("search_fallback") == "yes":
         print("--- DECISION: ROUTE TO WEB SEARCH ---")
@@ -388,6 +400,19 @@ def decide_to_generate(state: GraphState) -> str:
     else:
         print("--- DECISION: ROUTE TO GENERATION ---")
         return "generate"
+
+def decide_post_generate(state: GraphState) -> str:
+    documents = state.get("documents", [])
+    local_similarities = [doc.metadata.get("score", 0.0) for doc in documents]
+    max_similarity = max(local_similarities) if local_similarities else 0.0
+    is_web_fallback = any(doc.metadata.get("source") == "web_fallback" for doc in documents)
+    
+    if max_similarity >= 0.72 and not is_web_fallback and state.get("retry_count", 0) == 0:
+        print("--- DECISION: FAST-PATH BYPASS CRITIQUE. Routing directly to END! ---")
+        return END
+    else:
+        print("--- DECISION: STANDARD PATH. Routing to Critique Generation. ---")
+        return "critique_generation"
 
 def decide_post_critique(state: GraphState) -> str:
     if state.get("critique_feedback"):
@@ -407,7 +432,14 @@ workflow.add_node("transform_query_and_search", transform_query_and_search)
 workflow.add_node("critique_generation", critique_generation)
 
 workflow.add_edge(START, "retrieve")
-workflow.add_edge("retrieve", "grade_documents")
+workflow.add_conditional_edges(
+    "retrieve",
+    decide_post_retrieve,
+    {
+        "generate": "generate",
+        "grade_documents": "grade_documents"
+    }
+)
 workflow.add_conditional_edges(
     "grade_documents",
     decide_to_generate,
@@ -417,7 +449,14 @@ workflow.add_conditional_edges(
     },
 )
 workflow.add_edge("transform_query_and_search", "generate")
-workflow.add_edge("generate", "critique_generation")
+workflow.add_conditional_edges(
+    "generate",
+    decide_post_generate,
+    {
+        "critique_generation": "critique_generation",
+        END: END
+    }
+)
 workflow.add_conditional_edges(
     "critique_generation",
     decide_post_critique,
