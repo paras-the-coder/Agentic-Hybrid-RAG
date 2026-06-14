@@ -1,0 +1,36 @@
+{
+  "vector_only": {
+    "in_domain": {
+      "n_queries": 30,
+      "aggregates": {
+        "precision_at_k": 0.18333333333333332,
+        "recall_at_k": 0.6666666666666666,
+        "mrr": 0.5722222222222223,
+        "hit_rate": 0.6666666666666666,
+        "source_hit": 1.0
+      }
+    },
+    "out_of_domain": {
+      "n_queries": 10,
+      "fallback_trigger_rate": 0.8
+    },
+    "elapsed_sec": 112.95732116699219
+  },
+  "bm25_hybrid": {
+    "in_domain": {
+      "n_queries": 30,
+      "aggregates": {
+        "precision_at_k": 0.18333333333333332,
+        "recall_at_k": 0.6666666666666666,
+        "mrr": 0.5722222222222223,
+        "hit_rate": 0.6666666666666666,
+        "source_hit": 1.0
+      }
+    },
+    "out_of_domain": {
+      "n_queries": 10,
+      "fallback_trigger_rate": 0.8
+    },
+    "elapsed_sec": 110.08733797073364
+  }
+}

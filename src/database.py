@@ -96,6 +96,23 @@ def ingest_pdf_directory(data_path: str = DATA_DIR) -> int:
 
     print(f" Successfully extracted {len(raw_documents)} raw pages.")
 
+    # Clean document page contents of random tabs, double spaces, and random newlines
+    import re
+    def clean_document_text(text: str) -> str:
+        text = text.replace("\t", " ")
+        text = re.sub(r"(\w+)-\n(\w+)", r"\1\2", text)
+        paragraphs = text.split("\n\n")
+        cleaned_paragraphs = []
+        for para in paragraphs:
+            cleaned_para = re.sub(r"\n+", " ", para)
+            cleaned_para = re.sub(r"\s+", " ", cleaned_para).strip()
+            if cleaned_para:
+                cleaned_paragraphs.append(cleaned_para)
+        return "\n\n".join(cleaned_paragraphs)
+
+    for doc in raw_documents:
+        doc.page_content = clean_document_text(doc.page_content)
+
     # 2. Semantic Chunking Implementation
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1600,

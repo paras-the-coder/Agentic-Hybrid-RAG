@@ -69,6 +69,8 @@ critique_system_prompt = """Check answer against context:
 2. Missing info
 3. Contradictions
 
+Note: Terms in the context like 'we', 'the company', 'our', 'the scheme', or 'the regulations' refer to the target entity of the question (e.g. Tesla, Bupa, or AIESL). Do not fail the answer or context for using pronouns or referring to the entity as 'we' or 'the company' instead of its exact name.
+
 JSON format:
 {{"binary_score": "yes" (PASS) or "no" (FAIL), "reason": "reason if FAIL"}}"""
 
@@ -118,9 +120,9 @@ def retrieve(state: GraphState) -> Dict[str, Any]:
         filter_dict = {"source": os.path.basename(source_filter)}
         print(f"-> Filtering retrieval by document source: {filter_dict['source']}")
     
-    # Retrieve top 20 candidates
+    # Retrieve top 60 candidates
     # Pinecone returns (Document, score) where score is cosine similarity (0-1, higher = more similar)
-    docs_with_scores = vectorstore.similarity_search_with_score(question, k=20, filter=filter_dict)
+    docs_with_scores = vectorstore.similarity_search_with_score(question, k=60, filter=filter_dict)
     
     # Normalize path and deduplicate based on content
     seen_contents = set()
@@ -195,14 +197,15 @@ def grade_documents(state: GraphState) -> Dict[str, Any]:
     
     system_prompt = """You are a critic grading relevance of a retrieved document to a user question. \n
     Analyze the document content and determine if it has any relevance to answering the user question. \n
-    Be somewhat lenient: if the document contains any useful facts, partial context, definitions, tables, notes, or background information that could help answer even part of the question, grade it as relevant ('yes'). \n
+    Be lenient: if the document contains any useful facts, partial context, definitions, tables, notes, or background information that could help answer even part of the question, grade it as relevant ('yes'). \n
+    Note: The retrieved document comes from the source file '{source_file}'. Terms like 'we', 'the company', 'our', 'the scheme', 'the corporation', or 'the regulations' refer to the entity associated with the source file '{source_file}' (e.g. Tesla for tsla-20251231-gen.pdf, Bupa for MembershipHandbook.pdf, or AIESL for Aiesl Employees service regulation.pdf). Do not penalize documents for using pronouns or referring to the company as 'we' instead of its exact name. \n
     Otherwise, if it is completely off-topic or contains no relevant context at all, grade it as not relevant ('no'). \n
     You must respond strictly in JSON format matching this schema:
     {format_instructions}"""
     
     grade_prompt = ChatPromptTemplate.from_messages([
         ("system", system_prompt),
-        ("human", "Retrieved document: \n\n {document} \n\n User question: {question}"),
+        ("human", "Retrieved document (Source File: {source_file}): \n\n {document} \n\n User question: {question}"),
     ]).partial(format_instructions=parser.get_format_instructions())
     
     doc_grader = grade_prompt | llm | parser
@@ -211,10 +214,15 @@ def grade_documents(state: GraphState) -> Dict[str, Any]:
     
     def grade_single_doc(item):
         i, doc = item
+        src_file = doc.metadata.get("source", "Unknown PDF Document")
         for attempt in range(4):
             try:
                 print(f"-> CRITIC [Chunk {i}]: Grading started (attempt {attempt+1})...")
-                res = doc_grader.invoke({"question": question, "document": doc.page_content})
+                res = doc_grader.invoke({
+                    "question": question, 
+                    "document": doc.page_content,
+                    "source_file": src_file
+                })
                 return res
             except Exception as e:
                 import time
