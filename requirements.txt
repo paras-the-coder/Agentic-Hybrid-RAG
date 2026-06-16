@@ -17,3 +17,4 @@ fastapi
 uvicorn
 python-multipart
 sseclient-py
+scikit-learn
