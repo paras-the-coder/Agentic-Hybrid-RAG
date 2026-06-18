@@ -281,9 +281,15 @@
             <section class="flex-1 flex flex-col min-w-0 bg-[rgba(255,255,255,0.02)] backdrop-blur-xl border border-white/5 rounded-2xl relative overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                 <!-- Chat Header -->
                 <div class="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-surface/30 gap-4 flex-wrap">
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 flex-wrap">
                         <span class="material-symbols-outlined text-primary-container">forum</span>
-                        <h2 class="font-headline-md text-[18px] text-on-surface">Investigation Thread #892</h2>
+                        <h2 class="font-headline-md text-[18px] text-on-surface flex items-center gap-1.5 flex-wrap" id="chat-title">
+                            Investigation Thread
+                        </h2>
+                        <button id="new-chat-btn" class="ml-2 flex items-center gap-1 px-3 py-1 rounded-lg text-[11px] font-semibold bg-primary-container/10 text-primary border border-primary-container/20 hover:bg-primary-container/20 hover:border-primary-container/30 transition-all active:scale-95 cursor-pointer shadow-[0_0_10px_rgba(0,245,255,0.05)]" title="Reset Memory and Start New Chat">
+                            <span class="material-symbols-outlined text-[13px]">autorenew</span>
+                            New Chat
+                        </button>
                     </div>
                     <!-- Source Document Selector -->
                     <div class="flex items-center gap-2">
@@ -495,6 +501,26 @@
         const contextList = document.getElementById('context-list');
         const workflowBadge = document.getElementById('workflow-badge');
         const kBadge = document.getElementById('k-badge');
+
+        // Session and Thread ID Management (Backend owns state, frontend renders)
+        let sessionId = sessionStorage.getItem('rag_session_id');
+        if (!sessionId) {
+            sessionId = 'session_' + Math.random().toString(36).substring(2, 15);
+            sessionStorage.setItem('rag_session_id', sessionId);
+        }
+        
+        const chatTitle = document.getElementById('chat-title');
+        if (chatTitle) {
+            chatTitle.innerHTML = `Investigation Thread <span class="text-primary-container/70 font-mono text-[13px] ml-1">#${sessionId.substring(8, 12).toUpperCase()}</span>`;
+        }
+        
+        const newChatBtn = document.getElementById('new-chat-btn');
+        if (newChatBtn) {
+            newChatBtn.addEventListener('click', () => {
+                sessionStorage.removeItem('rag_session_id');
+                location.reload();
+            });
+        }
         
         // Workflow Nodes
         const nodeRetrieve = document.getElementById('node-retrieve');
@@ -581,15 +607,38 @@
                     <span class="material-symbols-outlined text-[14px] text-primary-fixed-dim">robot_2</span>
                     <span class="font-label-md text-label-md text-on-surface-variant">RAG Core Agent</span>
                 `;
+                
+                // Format text with linebreaks and page citations!
+                let formattedText = text
+                    .replace(/\n/g, '<br>')
+                    .replace(/\[Page\s*(\d+)\]/gi, (match, p1) => {
+                        return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-label-md bg-surface-variant text-on-surface-variant border border-white/10 hover:bg-surface-bright hover:text-white transition-colors cursor-pointer select-none mx-0.5"><span class="material-symbols-outlined text-[12px] mr-0.5">description</span>Page ${p1}</span>`;
+                    });
+                
                 bubble.innerHTML = `
                     ${header.outerHTML}
                     <div class="bg-surface-container-high/50 backdrop-blur-md border border-white/5 border-l-2 border-l-primary-container rounded-2xl rounded-tl-sm p-4 text-on-surface font-body-md text-body-sm shadow-lg shadow-black/20 leading-relaxed">
-                        ${text}
+                        ${formattedText}
                     </div>
                 `;
             }
             chatHistory.appendChild(bubble);
             chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // Fetch and Render Conversation History from Backend
+        async function loadChatHistory() {
+            try {
+                const res = await fetch(`/api/history?session_id=${sessionId}`);
+                const data = await res.json();
+                if (data.status === 'success' && data.chat_history && data.chat_history.length > 0) {
+                    data.chat_history.forEach(msg => {
+                        appendMessage(msg.role === 'user' ? 'user' : 'bot', msg.content);
+                    });
+                }
+            } catch (e) {
+                console.error("Failed to load chat history:", e);
+            }
         }
 
         // Dynamic status/greeting update function
@@ -686,7 +735,7 @@
             // Setup SSE connection
             const selector = document.getElementById('source-selector');
             const selectedSource = selector ? selector.value : 'all';
-            const eventSource = new EventSource(`/api/chat?question=${encodeURIComponent(question)}&source=${encodeURIComponent(selectedSource)}`);
+            const eventSource = new EventSource(`/api/chat?question=${encodeURIComponent(question)}&source=${encodeURIComponent(selectedSource)}&session_id=${encodeURIComponent(sessionId)}`);
             
             eventSource.onmessage = (event) => {
                 const data = JSON.parse(event.data);
@@ -829,8 +878,11 @@
             if (e.key === 'Enter') handleSend();
         });
 
-        // Initialize status greeting on load
-        window.addEventListener('DOMContentLoaded', updateStatusGreeting);
+        // Initialize status greeting and load chat history on load
+        window.addEventListener('DOMContentLoaded', () => {
+            updateStatusGreeting();
+            loadChatHistory();
+        });
     </script>
 </body>
 </html>

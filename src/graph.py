@@ -41,6 +41,8 @@ except ImportError:
 # 2. Define Graph State
 class GraphState(TypedDict):
     question: str
+    original_question: str
+    chat_history: List[Dict[str, Any]]
     generation: str
     search_fallback: str
     documents: List[Document]
@@ -105,6 +107,49 @@ def compute_confidence(state: Dict[str, Any]) -> str:
     return "Medium"
 
 # 4. Define Nodes (Graph Actions)
+
+def condense_question(state: GraphState) -> Dict[str, Any]:
+    print("--- CONDENSING/REWRITING USER QUESTION ---")
+    question = state["question"]
+    chat_history = state.get("chat_history", [])
+    
+    if not chat_history:
+        print("-> No chat history. Bypassing query condensation LLM call.")
+        return {"question": question, "original_question": question}
+        
+    print(f"-> Chat history found ({len(chat_history)} messages). Condensing...")
+    # Get last 10 messages (5 turns)
+    history_window = chat_history[-10:]
+    
+    # Format the history for the LLM
+    history_str = ""
+    for msg in history_window:
+        role = "User" if msg.get("role") == "user" else "Assistant"
+        content = msg.get("content", "")
+        sources = msg.get("sources", [])
+        sources_str = f" [Sources: {', '.join(sources)}]" if sources else ""
+        history_str += f"{role}: {content}{sources_str}\n"
+        
+    condense_prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are an expert query contextualizer. Given a conversation history and a follow-up question, "
+                   "determine if the follow-up question refers to context or pronouns in the history. "
+                   "If it does, rewrite the follow-up question into a standalone, complete question that can be understood "
+                   "without any chat history (suitable for search/retrieval). "
+                   "If it is already a complete question or does not refer to the history, respond with the original question word-for-word. "
+                   "Do NOT explain or add any introductory text. Return ONLY the rewritten question."),
+        ("human", "Conversation History:\n{history}\n\nFollow-up Question: {question}")
+    ])
+    
+    condenser_chain = condense_prompt | llm
+    rewritten_question = condenser_chain.invoke({"history": history_str, "question": question}).content.strip()
+    print(f"-> Original Question: {question}")
+    print(f"-> Rewritten Standalone Question: {rewritten_question}")
+    
+    return {
+        "question": rewritten_question,
+        "original_question": question
+    }
+
 
 def retrieve(state: GraphState) -> Dict[str, Any]:
     print("--- RETRIEVING DOCUMENTS (k=20) ---")
@@ -381,6 +426,35 @@ def critique_generation(state: GraphState) -> Dict[str, Any]:
         confidence = compute_confidence(state_temp)
         return {"critique_feedback": "", "retry_count": retry_count, "confidence": confidence}
 
+
+def save_history(state: GraphState) -> Dict[str, Any]:
+    print("--- SAVING CONVERSATION HISTORY ---")
+    original_question = state.get("original_question", state.get("question"))
+    generation = state.get("generation", "")
+    documents = state.get("documents", [])
+    
+    # Extract sources from documents
+    sources = []
+    for doc in documents:
+        src = doc.metadata.get("source")
+        if src:
+            page = doc.metadata.get("page")
+            page_str = f" (Page {page + 1})" if page is not None and isinstance(page, int) else ""
+            sources.append(f"{src}{page_str}")
+            
+    # Deduplicate sources list
+    sources = list(sorted(set(sources)))
+    
+    chat_history = list(state.get("chat_history", []))
+    chat_history.append({"role": "user", "content": original_question})
+    chat_history.append({"role": "assistant", "content": generation, "sources": sources})
+    
+    # Slice to store last 20 messages (10 turns) locally
+    chat_history = chat_history[-20:]
+    
+    print(f"-> Chat history updated. Total messages: {len(chat_history)}")
+    return {"chat_history": chat_history}
+
 # 5. Define Conditional Routing Logic
 def decide_post_retrieve(state: GraphState) -> str:
     documents = state.get("documents", [])
@@ -409,8 +483,8 @@ def decide_post_generate(state: GraphState) -> str:
     is_web_fallback = any(doc.metadata.get("source") == "web_fallback" for doc in documents)
     
     if max_similarity >= 0.72 and not is_web_fallback and state.get("retry_count", 0) == 0:
-        print("--- DECISION: FAST-PATH BYPASS CRITIQUE. Routing directly to END! ---")
-        return END
+        print("--- DECISION: FAST-PATH BYPASS CRITIQUE. Routing directly to Save History! ---")
+        return "save_history"
     else:
         print("--- DECISION: STANDARD PATH. Routing to Critique Generation. ---")
         return "critique_generation"
@@ -420,19 +494,22 @@ def decide_post_critique(state: GraphState) -> str:
         print("--- DECISION: CRITIQUE FAILED, ROUTING TO GENERATE ---")
         return "generate"
     else:
-        print("--- DECISION: CRITIQUE PASSED, ROUTING TO END ---")
-        return END
+        print("--- DECISION: CRITIQUE PASSED, ROUTING TO SAVE HISTORY ---")
+        return "save_history"
 
 # 6. Build the LangGraph Workflow
 workflow = StateGraph(GraphState)
 
+workflow.add_node("condense_question", condense_question)
 workflow.add_node("retrieve", retrieve)
 workflow.add_node("grade_documents", grade_documents)
 workflow.add_node("generate", generate)
 workflow.add_node("transform_query_and_search", transform_query_and_search)
 workflow.add_node("critique_generation", critique_generation)
+workflow.add_node("save_history", save_history)
 
-workflow.add_edge(START, "retrieve")
+workflow.add_edge(START, "condense_question")
+workflow.add_edge("condense_question", "retrieve")
 workflow.add_conditional_edges(
     "retrieve",
     decide_post_retrieve,
@@ -455,7 +532,7 @@ workflow.add_conditional_edges(
     decide_post_generate,
     {
         "critique_generation": "critique_generation",
-        END: END
+        "save_history": "save_history"
     }
 )
 workflow.add_conditional_edges(
@@ -463,8 +540,11 @@ workflow.add_conditional_edges(
     decide_post_critique,
     {
         "generate": "generate",
-        END: END,
+        "save_history": "save_history",
     },
 )
+workflow.add_edge("save_history", END)
 
-app = workflow.compile()
+from langgraph.checkpoint.memory import MemorySaver
+memory = MemorySaver()
+app = workflow.compile(checkpointer=memory)

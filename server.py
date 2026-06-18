@@ -158,10 +158,33 @@ async def get_status():
             "message": f"Failed to query database status: {str(e)}"
         }
 
+@app.get("/api/history")
+async def get_chat_history(
+    session_id: str = Query(..., description="Session/thread ID to retrieve history for")
+):
+    """
+    Fetches the persisted conversation history for a given session/thread ID 
+    from the LangGraph MemorySaver checkpointer.
+    """
+    try:
+        config = {"configurable": {"thread_id": session_id}}
+        state = graph_app.get_state(config)
+        chat_history = state.values.get("chat_history", []) if state else []
+        return {
+            "status": "success",
+            "chat_history": chat_history
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to retrieve chat history: {str(e)}"
+        }
+
 @app.get("/api/chat")
 async def chat_stream(
     question: str = Query(..., description="User query to RAG system"),
-    source: str = Query(None, description="Optional document source filter")
+    source: str = Query(None, description="Optional document source filter"),
+    session_id: str = Query(None, description="Optional session/thread ID")
 ):
     """
     Executes the LangGraph RAG agent workflow and streams intermediate 
@@ -173,8 +196,12 @@ async def chat_stream(
             "source": source
         }
         
+        # Thread config for MemorySaver checkpointer
+        thread_id = session_id or "default_thread"
+        config = {"configurable": {"thread_id": thread_id}}
+        
         try:
-            async for event in graph_app.astream(inputs):
+            async for event in graph_app.astream(inputs, config=config):
                 for node_name, node_state in event.items():
                     docs_payload = []
                     if "documents" in node_state and node_state["documents"]:
