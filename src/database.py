@@ -1,13 +1,14 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 from typing import List
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 from langchain_pinecone import PineconeVectorStore
-from dotenv import load_dotenv
 
-load_dotenv()
 
 # Define local data directory for uploaded PDFs (relative to project root)
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

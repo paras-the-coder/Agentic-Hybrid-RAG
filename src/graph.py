@@ -1,8 +1,10 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 import asyncio
 from typing import List, Dict, Any
 from typing_extensions import TypedDict
-from dotenv import load_dotenv
 
 from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
@@ -13,7 +15,6 @@ from langchain_groq import ChatGroq
 from langgraph.graph import END, StateGraph, START
 from src.database import get_local_retriever
 
-load_dotenv()
 
 # 1. Environment Configuration
 # Use .get() to avoid setting env vars to the string "None" if keys are missing

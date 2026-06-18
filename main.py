@@ -1,16 +1,15 @@
 import os
 import sys
+from dotenv import load_dotenv
+load_dotenv()
 
 # Fix Windows console encoding for emoji/unicode characters
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-from dotenv import load_dotenv
 from src.database import get_pinecone_index_name
 
-# Load api keys from the local .env file
-load_dotenv()
 
 def run_agentic_rag():
     print(" Step 1: Verifying Pinecone Connection...")
