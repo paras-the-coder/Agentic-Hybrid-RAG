@@ -1,4 +1,5 @@
 import os
+import re
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -53,7 +54,7 @@ class GraphState(TypedDict):
 
 # 3. Setup Groq LLM, Retriever, and Tools
 
-llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0, timeout=60)
 
 # --- Setup Custom JSON Parsers ---
 class GradeDocuments(BaseModel):
@@ -186,7 +187,6 @@ def retrieve(state: GraphState) -> Dict[str, Any]:
             unique_docs_with_scores.append((doc, similarity))
             
     # Apply lexical keyword boosting (hybrid reranking)
-    import re
     stop_words = {"what", "are", "all", "the", "different", "scenarios", "where", "an", "employee", "service", "can", "be", "regularized", "or", "impacted", "by", "leave", "without", "pay", "is", "a", "of", "in", "to", "for", "on", "with", "at", "by", "from", "it", "this", "that"}
     words = re.findall(r'\b\w+\b', question.lower())
     keywords = [w for w in words if len(w) > 2 and w not in stop_words]
@@ -204,8 +204,8 @@ def retrieve(state: GraphState) -> Dict[str, Any]:
         
     reranked_docs.sort(key=lambda x: x[1], reverse=True)
     
-    # Keep top 4 chunks (drops LLM calls from 16 to 4!)
-    top_docs_with_scores = reranked_docs[:4]
+    # Keep top 6 chunks (safety recall margin buffer)
+    top_docs_with_scores = reranked_docs[:6]
     
     # Compress content: clean up whitespace
     final_docs = []
@@ -461,11 +461,11 @@ def decide_post_retrieve(state: GraphState) -> str:
     local_similarities = [doc.metadata.get("score", 0.0) for doc in documents]
     max_similarity = max(local_similarities) if local_similarities else 0.0
     
-    if max_similarity >= 0.72:
-        print(f"--- DECISION: FAST-PATH DETECTED (Max similarity {max_similarity:.4f} >= 0.72). Routing directly to Generate! ---")
+    if max_similarity >= 0.82:
+        print(f"--- DECISION: FAST-PATH DETECTED (Max similarity {max_similarity:.4f} >= 0.82). Routing directly to Generate! ---")
         return "generate"
     else:
-        print(f"--- DECISION: STANDARD PATH DETECTED (Max similarity {max_similarity:.4f} < 0.72). Routing to Grade Documents. ---")
+        print(f"--- DECISION: STANDARD PATH DETECTED (Max similarity {max_similarity:.4f} < 0.82). Routing to Grade Documents. ---")
         return "grade_documents"
 
 def decide_to_generate(state: GraphState) -> str:
@@ -482,7 +482,7 @@ def decide_post_generate(state: GraphState) -> str:
     max_similarity = max(local_similarities) if local_similarities else 0.0
     is_web_fallback = any(doc.metadata.get("source") == "web_fallback" for doc in documents)
     
-    if max_similarity >= 0.72 and not is_web_fallback and state.get("retry_count", 0) == 0:
+    if max_similarity >= 0.82 and not is_web_fallback and state.get("retry_count", 0) == 0:
         print("--- DECISION: FAST-PATH BYPASS CRITIQUE. Routing directly to Save History! ---")
         return "save_history"
     else:

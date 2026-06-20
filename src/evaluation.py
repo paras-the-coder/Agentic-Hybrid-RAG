@@ -71,7 +71,7 @@ def run_basic_rag(question: str) -> Dict[str, Any]:
     import src.graph
     from langchain_groq import ChatGroq
     # Override LLM model to avoid TPD limits on llama-3.3-70b-versatile
-    src.graph.llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
+    src.graph.llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0, timeout=60)
     
     from src.graph import retrieve, generate
     
@@ -101,12 +101,13 @@ def run_agentic_rag(question: str) -> Dict[str, Any]:
     import src.graph
     from langchain_groq import ChatGroq
     # Override LLM model to avoid TPD limits on llama-3.3-70b-versatile
-    src.graph.llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
+    src.graph.llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0, timeout=60)
     
+    import uuid
     from src.graph import app
     
-    # Expose the app.invoke method
-    res = app.invoke({"question": question, "source": "all"})
+    config = {"configurable": {"thread_id": f"eval_{uuid.uuid4()}"}}
+    res = app.invoke({"question": question, "source": "all"}, config=config)
     
     return {
         "answer": res.get("generation", ""),
@@ -153,7 +154,7 @@ def check_hallucination(retrieved_chunks: str, answer: str) -> str:
         "UNSUPPORTED"
     )
     
-    llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
+    llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0, timeout=60)
     chain = prompt | llm
     
     try:
