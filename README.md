@@ -40,7 +40,7 @@ This live demo is pre-loaded with **3 demo documents** in the Pinecone cloud dat
 
 * **Standard RAG** is linear and fragile. It retrieves documents, passes them to the LLM, and prints whatever the LLM says. There is no checking, no retry, and no backup plan.
 * **Agentic RAG** introduces loops: it grades documents, uses web search if they are irrelevant, and critiques the final answer to fix hallucinations. This is very accurate but **slow** (often taking over 50 seconds due to multiple LLM calls and rate-limiting).
-* **Adaptive RAG (Fast-Path Routing)** combines the best of both worlds. If the retrieved documents are a **very high-confidence match** (similarity score $\ge 0.72$), it takes a "Fast-Path": it skips document grading and critiques, generating the answer in just 2-3 seconds. If the documents are low-confidence ($< 0.72$), it runs the full Agentic RAG pipeline for maximum safety.
+* **Adaptive RAG (Fast-Path Routing)** combines the best of both worlds. If the retrieved documents are a **very high-confidence match** (similarity score $\ge 0.82$), it takes a "Fast-Path": it skips document grading and critiques, generating the answer in just 2-3 seconds. If the documents are low-confidence ($< 0.82$), it runs the full Agentic RAG pipeline for maximum safety.
 
 ## Why Hybrid RAG Matters
 
@@ -64,15 +64,21 @@ The core of this system is a **LangGraph state machine** — a directed graph wh
                         └────────┬────────┘
                                  │
                                  ▼
-                    ┌─────────────────────────┐
-                    │  RETRIEVE (k=60 → top 4)│
-                    │  Hybrid Semantic+Lexical │
-                    │  Reranking & Dedup       │
-                    └────────────┬────────────┘
+                     ┌───────────────────────┐
+                     │   CONDENSE QUESTION   │
+                     │  (Conversational Mem) │
+                     └───────────┬───────────┘
+                                 │
+                                 ▼
+                     ┌─────────────────────────┐
+                     │  RETRIEVE (k=60 → top 6)│
+                     │  Hybrid Semantic+Lexical │
+                     │  Reranking & Dedup       │
+                     └────────────┬────────────┘
                                  │
                                  ▼
                      ┌───────────────────────┐
-                     │   Max Sim >= 0.72?    │
+                     │   Max Sim >= 0.82?    │
                      └──────┬─────────┬──────┘
                             │         │
                    No       │         │ Yes (Fast-Path)
@@ -81,7 +87,7 @@ The core of this system is a **LangGraph state machine** — a directed graph wh
 ┌──────────────────┐                                     │
 │ GRADE DOCUMENTS  │                                     │
 │ (parallel grading│                                     │
-│ of 4 chunks)     │                                     │
+│ of 6 chunks)     │                                     │
 └────────┬─────────┘                                     │
          │                                               │
 ┌────────┴─────────┐                                     │
@@ -112,31 +118,28 @@ The core of this system is a **LangGraph state machine** — a directed graph wh
   │  Critique Pass? │          │                        │
   ▼                 ▼          │                        │
 ┌───────────┐   ┌──────────────┐   │                    │
-│  ✅ END   │   │ REGENERATE   │───┘                    │
-│  Stream   │   │ REGENERATE   │                        │
-│  Answer   │   └──────────────┘                        │
-└───────────┘                                           │
-      ▲                                                 │
       └─────────────────────────────────────────────────┘
 ```
 
 ### How It Works (Step by Step)
 
-1. **Retrieve** — The user's question is embedded and searched against Pinecone. The top 60 candidates are retrieved, deduplicated, and reranked using a hybrid semantic + lexical score. Only the **top 4 chunks** are selected.
+1. **Condense Question** — The system checks your chat history. If your new question refers to previous chat topics (like using "who" or "it"), it rewrites the query into a standalone question. Otherwise, it uses your question as-is.
 
-2. **Adaptive Router** — The system checks the highest similarity score among the retrieved chunks:
-   - **Fast-Path (Similarity $\ge 0.72$):** Bypasses all document grading and answer critiques, generating the response directly to the user in 2-3 seconds.
-   - **Standard Path (Similarity $< 0.72$):** Continues with the full Agentic RAG workflow (Steps 3-7) for maximum verification.
+2. **Retrieve** — The standalone question is searched against your document using Pinecone. The top 60 candidates are retrieved, deduplicated, and reranked using a hybrid semantic + lexical score. Only the **top 6 chunks** are selected.
 
-3. **Grade Documents** — Each of the 4 chunks is sent to the LLM in **parallel** with the question to check for relevance. If all chunks are irrelevant, the system triggers web search.
+3. **Adaptive Router** — The system checks the highest similarity score among the retrieved chunks:
+   - **Fast-Path (Similarity $\ge 0.82$):** Bypasses all document grading and answer critiques, generating the response directly to the user in 2-3 seconds.
+   - **Standard Path (Similarity $< 0.82$):** Continues with the full Agentic RAG workflow (Steps 4-8) for maximum verification.
 
-4. **Web Search Fallback** — If the PDF doesn't have the answer, the query is **rewritten** by the LLM, executed against the **Tavily Search API**, and summarized.
+4. **Grade Documents** — Each of the 6 chunks is sent to the LLM in **parallel** with the question to check for relevance. If all chunks are irrelevant, the system triggers web search.
 
-5. **Generate** — The LLM generates a comprehensive answer using the relevant PDF chunks (or web results) as context.
+5. **Web Search Fallback** — If the PDF doesn't have the answer, the query is rewritten and run against the **Tavily Search API**.
 
-6. **Self-Critique** — The LLM evaluates the generated answer against the context, checking for unsupported claims, missing information, or contradictions.
+6. **Generate** — The LLM generates a comprehensive answer using the relevant PDF chunks (or web results) as context.
 
-7. **Retry or Finish** — If the critique fails, the system loops back to generation with corrective feedback (up to 1 retry). Otherwise, the final answer is streamed to the user.
+7. **Self-Critique** — The LLM evaluates the generated answer against the context, checking for unsupported claims or contradictions.
+
+8. **Save History & Stream** — If the critique passes, the response is saved into the chat history for future context, and the final answer is streamed to the user. If the critique fails, the system loops back to generation with corrective feedback (up to 1 retry).
 
 ---
 
@@ -144,7 +147,8 @@ The core of this system is a **LangGraph state machine** — a directed graph wh
 
 | Feature | Description |
 |---|---|
-| **Adaptive RAG Routing (New)** | Bypasses grading/critiques for high-confidence queries (similarity $\ge 0.72$), reducing average latency by **69%** |
+| **Conversational Memory (New)** | Remembers previous questions and answers in a thread to support natural follow-up queries |
+| **Adaptive RAG Routing (New)** | Bypasses grading/critiques for high-confidence queries (similarity $\ge 0.82$), reducing average latency by **69%** |
 | **Clean Ingestion Formatting (New)** | Cleans tabs, collapses whitespace, and resolves cross-line hyphens to prevent chunk indexing noise |
 | **Evaluation Caching (New)** | Loads cached Basic RAG results during evaluation runs to prevent API rate-limit exhaustion |
 | **LangGraph Workflow Orchestration** | Stateful, cyclical agent graph with conditional routing and retry loops |
@@ -387,10 +391,10 @@ Once you have uploaded a document (e.g., a Tesla 10-K annual report), try these:
 ## Challenges & Tradeoffs
 
 ### Groq Free-Tier Token Limits
-The Groq free tier imposes strict Tokens-Per-Minute (TPM) and Requests-Per-Minute (RPM) limits. Grading 16 chunks in parallel would instantly hit rate limits and cause failures. **Solution:** We implemented local hybrid reranking to compress candidates from 16 to 4 before sending them to the LLM, reducing token usage by 4x.
+The Groq free tier imposes strict Tokens-Per-Minute (TPM) and Requests-Per-Minute (RPM) limits. Grading 60 chunks in parallel would instantly hit rate limits and cause failures. **Solution:** We implemented local hybrid reranking to compress candidates from 60 to 6 before sending them to the LLM, reducing token usage by 10x.
 
 ### Retrieval Compression vs. Recall
-To save tokens and make the system faster, we only keep the top 4 most relevant chunks instead of sending many chunks to the LLM. This can sometimes miss useful information from other pages, but it greatly improves speed and reduces API rate-limit issues. To make retrieval more accurate, we combine semantic similarity and keyword matching.
+To save tokens and make the system faster, we only keep the top 6 most relevant chunks instead of sending many chunks to the LLM. This can sometimes miss useful information from other pages, but it greatly improves speed and reduces API rate-limit issues. To make retrieval more accurate, we combine semantic similarity and keyword matching.
 
 ### Hallucination Mitigation
 LLMs can sometimes generate incorrect or made-up answers, especially when the question is unclear or the context is weak. To reduce this, the system checks its own answer after generation using a self-critique step. This improves reliability, but adds a little extra response time.
@@ -402,7 +406,7 @@ If the critique step fails, the system regenerates the answer one more time usin
 The project uses the free local embedding model `BAAI/bge-small-en-v1.5` to avoid API costs. While it works well, its similarity scores are very close together, making it harder to perfectly separate relevant and irrelevant chunks compared to larger commercial embedding models.
 
 ### Latency vs. Accuracy (Adaptive RAG)
-Every safety mechanism (grading, critique, retry) adds LLM calls and latency. A full Agentic pipeline with web fallback and retry can take over 50 seconds. **Tradeoff:** We resolved this by implementing **Adaptive RAG (Fast-Path Routing)**. Confident retrievals (similarity $\ge 0.72$) bypass grading and critique nodes to run in a single retrieve-and-generate cycle, dropping average latency by 69% to 16.91 seconds.
+Every safety mechanism (grading, critique, retry) adds LLM calls and latency. A full Agentic pipeline with web fallback and retry can take over 50 seconds. **Tradeoff:** We resolved this by implementing **Adaptive RAG (Fast-Path Routing)**. Confident retrievals (similarity $\ge 0.82$) bypass grading and critique nodes to run in a single retrieve-and-generate cycle, dropping average latency by 69% to 16.91 seconds.
 
 ### Grader Pronoun Leniency
 In the original pipeline, the LLM document grader rejected correct PDF pages (like Page 71 of Tesla's annual report) because they referred to the company using pronouns ("we", "our", "the company") rather than the exact search keyword ("Tesla"). **Solution:** We injected document context into the LLM prompts so the grading and critique nodes resolve these pronouns correctly.
@@ -411,7 +415,6 @@ In the original pipeline, the LLM document grader rejected correct PDF pages (li
 
 ## Future Improvements
 
-- **Conversational Memory** — Add chat history to the LangGraph state so the agent can handle follow-up questions and multi-turn conversations.
 - **Multi-Hop Reasoning** — Decompose complex queries into sub-questions, retrieve context for each, and synthesize a combined answer.
 - **Cross-Encoder Reranking** — Replace BM25 with a learned cross-encoder model (e.g., `ms-marco-MiniLM`) for more accurate reranking.
 - **Multi-Query Decomposition** — Generate multiple reformulations of the user's query and retrieve from each, merging the results for better recall.
