@@ -51,6 +51,7 @@ class GraphState(TypedDict):
     critique_feedback: str
     confidence: str
     source: str
+    intent: str
 
 # 3. Setup Groq LLM, Retriever, and Tools
 
@@ -67,6 +68,12 @@ class CritiqueResult(BaseModel):
     reason: str = Field(description="Brief reason if FAIL, else empty")
 
 critique_parser = JsonOutputParser(pydantic_object=CritiqueResult)
+
+class CondenseResult(BaseModel):
+    intent: str = Field(description="Classify query type: 'chitchat' (greetings, small talk, meta-questions about conversation history, or asking who you are) or 'factual' (asking for facts, policies, statistics, or details from documents)")
+    rewritten_question: str = Field(description="The standalone rewritten question if it refers to history context, or the original question word-for-word if it is already standalone")
+
+condense_parser = JsonOutputParser(pydantic_object=CondenseResult)
 
 critique_system_prompt = """Check answer against context:
 1. Unsupported claims
@@ -114,41 +121,47 @@ def condense_question(state: GraphState) -> Dict[str, Any]:
     question = state["question"]
     chat_history = state.get("chat_history", [])
     
-    if not chat_history:
-        print("-> No chat history. Bypassing query condensation LLM call.")
-        return {"question": question, "original_question": question}
-        
-    print(f"-> Chat history found ({len(chat_history)} messages). Condensing...")
-    # Get last 10 messages (5 turns)
-    history_window = chat_history[-10:]
-    
     # Format the history for the LLM
     history_str = ""
-    for msg in history_window:
-        role = "User" if msg.get("role") == "user" else "Assistant"
-        content = msg.get("content", "")
-        sources = msg.get("sources", [])
-        sources_str = f" [Sources: {', '.join(sources)}]" if sources else ""
-        history_str += f"{role}: {content}{sources_str}\n"
+    if chat_history:
+        print(f"-> Chat history found ({len(chat_history)} messages). Contextualizing...")
+        history_window = chat_history[-10:]
+        for msg in history_window:
+            role = "User" if msg.get("role") == "user" else "Assistant"
+            content = msg.get("content", "")
+            sources = msg.get("sources", [])
+            sources_str = f" [Sources: {', '.join(sources)}]" if sources else ""
+            history_str += f"{role}: {content}{sources_str}\n"
+    else:
+        history_str = "(No previous conversation)"
         
     condense_prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are an expert query contextualizer. Given a conversation history and a follow-up question, "
-                   "determine if the follow-up question refers to context or pronouns in the history. "
-                   "If it does, rewrite the follow-up question into a standalone, complete question that can be understood "
-                   "without any chat history (suitable for search/retrieval). "
-                   "If it is already a complete question or does not refer to the history, respond with the original question word-for-word. "
-                   "Do NOT explain or add any introductory text. Return ONLY the rewritten question."),
+        ("system", "You are an expert query analyzer. Analyze the conversation history and the follow-up question.\n"
+                   "1. Classify the user's intent as 'chitchat' (if it is a greeting, small talk, meta-question about the chat history, or questions about you) or 'factual' (if it is asking for facts, policies, statistics, or details from documents).\n"
+                   "2. If it is 'factual', determine if the question refers to context or pronouns in the history. Rewrite it into a standalone, complete question. If it is already standalone or 'chitchat', keep it as-is.\n\n"
+                   "You must respond strictly in JSON matching this schema:\n{format_instructions}"),
         ("human", "Conversation History:\n{history}\n\nFollow-up Question: {question}")
-    ])
+    ]).partial(format_instructions=condense_parser.get_format_instructions())
     
-    condenser_chain = condense_prompt | llm
-    rewritten_question = condenser_chain.invoke({"history": history_str, "question": question}).content.strip()
+    condenser_chain = condense_prompt | llm | condense_parser
+    
+    intent = "factual"
+    rewritten_question = question
+    try:
+        res = condenser_chain.invoke({"history": history_str, "question": question})
+        intent = res.get("intent", "factual").lower().strip()
+        rewritten_question = res.get("rewritten_question", question).strip()
+    except Exception as e:
+        print(f"-> Condenser/Classifier failed: {e}. Defaulting to factual.")
+        
     print(f"-> Original Question: {question}")
+    print(f"-> Classified Intent: {intent}")
     print(f"-> Rewritten Standalone Question: {rewritten_question}")
     
     return {
         "question": rewritten_question,
-        "original_question": question
+        "original_question": question,
+        "intent": intent
     }
 
 
@@ -303,7 +316,32 @@ def generate(state: GraphState) -> Dict[str, Any]:
     documents = state["documents"]
     critique_feedback = state.get("critique_feedback", "")
     retry_count = state.get("retry_count", 0)
+    intent = state.get("intent", "factual")
     
+    if intent == "chitchat":
+        print("--- GENERATING CHITCHAT/META RESPONSE ---")
+        chat_history = state.get("chat_history", [])
+        
+        # Build history string
+        history_str = ""
+        for msg in chat_history:
+            role = "User" if msg.get("role") == "user" else "Assistant"
+            content = msg.get("content", "")
+            history_str += f"{role}: {content}\n"
+            
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "You are a helpful AI assistant. Answer the user's question directly based on your conversation history. "
+                       "If they ask what was discussed, summarize the previous topics and turns. If they greet you, greet them back. "
+                       "If they ask who you are, introduce yourself as the RAG Core Agent. "
+                       "You do not have external document context for this turn, so speak from the conversation itself. "
+                       "Be concise, natural, and helpful. Do not mention any JSON formatting or technical pipelines."),
+            ("human", "Conversation History:\n{history}\n\nQuestion: {question}")
+        ])
+        
+        chain = prompt | llm
+        generation = chain.invoke({"history": history_str, "question": question})
+        return {"documents": [], "question": question, "generation": generation.content}
+        
     if not documents:
         return {"documents": [], "question": question, "generation": "I could not find relevant information."}
     
@@ -456,6 +494,12 @@ def save_history(state: GraphState) -> Dict[str, Any]:
     return {"chat_history": chat_history}
 
 # 5. Define Conditional Routing Logic
+def decide_post_condense(state: GraphState) -> str:
+    if state.get("intent") == "chitchat":
+        print("--- DECISION: CHITCHAT/META QUERY DETECTED. Routing directly to Generate! ---")
+        return "generate"
+    return "retrieve"
+
 def decide_post_retrieve(state: GraphState) -> str:
     documents = state.get("documents", [])
     local_similarities = [doc.metadata.get("score", 0.0) for doc in documents]
@@ -482,6 +526,10 @@ def decide_post_generate(state: GraphState) -> str:
     max_similarity = max(local_similarities) if local_similarities else 0.0
     is_web_fallback = any(doc.metadata.get("source") == "web_fallback" for doc in documents)
     
+    if state.get("intent") == "chitchat":
+        print("--- DECISION: CHITCHAT BYPASS CRITIQUE. Routing directly to Save History! ---")
+        return "save_history"
+        
     if max_similarity >= 0.82 and not is_web_fallback and state.get("retry_count", 0) == 0:
         print("--- DECISION: FAST-PATH BYPASS CRITIQUE. Routing directly to Save History! ---")
         return "save_history"
@@ -509,7 +557,14 @@ workflow.add_node("critique_generation", critique_generation)
 workflow.add_node("save_history", save_history)
 
 workflow.add_edge(START, "condense_question")
-workflow.add_edge("condense_question", "retrieve")
+workflow.add_conditional_edges(
+    "condense_question",
+    decide_post_condense,
+    {
+        "retrieve": "retrieve",
+        "generate": "generate"
+    }
+)
 workflow.add_conditional_edges(
     "retrieve",
     decide_post_retrieve,
