@@ -313,7 +313,7 @@ def grade_documents(state: GraphState) -> Dict[str, Any]:
 def generate(state: GraphState) -> Dict[str, Any]:
     print("--- GENERATING ANSWER WITH GROQ ---")
     question = state["question"]
-    documents = state["documents"]
+    documents = state.get("documents", [])
     critique_feedback = state.get("critique_feedback", "")
     retry_count = state.get("retry_count", 0)
     intent = state.get("intent", "factual")
