@@ -48,7 +48,7 @@ This project implements a **hybrid reranking** strategy that combines two retrie
 - **Semantic similarity** (dense vector cosine distance via Pinecone) captures conceptual meaning.
 - **BM25 lexical scoring** (via `rank-bm25`) catches precise names, numbers, and domain terms that embeddings might miss.
 
-The two result sets are merged using **Reciprocal Rank Fusion (RRF)**, a parameter-free rank-merging algorithm (`1/(60+rank)`) that is standard in production search systems. This produces far more accurate retrieval than either method alone, especially for technical or financial documents where exact terminology matters.
+The two rankings are merged using **Reciprocal Rank Fusion (RRF)**, a parameter-light, scale-free rank-merging algorithm (`1/(60+rank)`) that is standard in production search systems. The implementation lives in [`src/retrieval.py`](src/retrieval.py) and is shared by both the live agent and the evaluation harness, so the vector-only vs. BM25-hybrid ablation is a fair, apples-to-apples comparison. On our 30-question benchmark the hybrid improves **MRR** (it ranks the first relevant chunk higher) while leaving recall roughly unchanged; the effect is not statistically significant on a set this small — see the [Evaluation & Ablation Study](#-evaluation--ablation-study) below for the measured numbers rather than a hand-waved claim.
 
 > **Note:** `compute_confidence` in `src/graph.py` is a **heuristic** confidence label (High/Medium/Low), not a calibrated probability.
 
@@ -148,7 +148,7 @@ The core of this system is a **LangGraph state machine** — a directed graph wh
 | Feature | Description |
 |---|---|
 | **Conversational Memory (New)** | Remembers previous questions and answers in a thread to support natural follow-up queries |
-| **Adaptive RAG Routing (New)** | Bypasses grading/critiques for high-confidence queries (similarity $\ge 0.82$), reducing average latency by **69%** |
+| **Adaptive RAG Routing (New)** | Bypasses grading/critiques for high-confidence queries (max similarity $\ge 0.82$), collapsing the pipeline to a single retrieve→generate cycle for those queries |
 | **Clean Ingestion Formatting (New)** | Cleans tabs, collapses whitespace, and resolves cross-line hyphens to prevent chunk indexing noise |
 | **Evaluation Caching (New)** | Loads cached Basic RAG results during evaluation runs to prevent API rate-limit exhaustion |
 | **LangGraph Workflow Orchestration** | Stateful, cyclical agent graph with conditional routing and retry loops |
@@ -198,19 +198,24 @@ Agentic-Hybrid-RAG/
 │
 ├── src/
 │   ├── __init__.py        # Package initializer
-│   ├── database.py        # PDF ingestion, chunking, embedding, Pinecone connector, BM25 chunk loader
+│   ├── database.py        # PDF ingestion, chunking, embedding, Pinecone connector
+│   ├── retrieval.py       # Hybrid retrieval primitives — BM25 + Reciprocal Rank Fusion (shared)
 │   ├── graph.py           # LangGraph state machine — retrieve (BM25+RRF), grade, search, generate, critique
-│   └── evaluation.py      # Programmatic evaluation harness — metrics, ablation, significance tests
+│   ├── retrieval_eval.py  # Deterministic retrieval ablation — Precision/Recall/MRR + Wilcoxon (zero LLM)
+│   ├── ragas_eval.py      # RAGAS answer-quality eval — faithfulness, relevancy, context (LLM judge)
+│   └── evaluation.py      # Basic-RAG vs Agentic-RAG answer-quality comparison harness
 │
 ├── tests/
-│   └── test_routing.py    # Deterministic routing unit tests (pytest)
+│   ├── test_routing.py    # Deterministic routing + confidence unit tests (pytest)
+│   └── test_retrieval.py  # BM25 / RRF / rerank unit tests (pytest)
 │
 ├── data/
 │   ├── *.pdf              # Drop your PDF files here for ingestion (git-ignored)
 │   └── eval/
-│       └── qa_gold.jsonl  # Gold Q&A evaluation dataset (30 in-domain + 10 out-of-domain)
+│       ├── qa_gold.jsonl          # Gold retrieval set — 30 in-domain (page labels) + 10 out-of-domain
+│       └── rag_eval_dataset.csv   # Q&A set for the answer-quality comparison harness
 │
-├── evaluation/            # Generated evaluation reports and ablation results
+├── evaluation/            # Generated reports: ablation_results.json, comparison_report.md, ragas_results.json
 └── .venv/                 # Python virtual environment (git-ignored)
 ```
 
@@ -311,7 +316,13 @@ This will verify the connection to your Pinecone index and start an interactive 
 
 ## 📊 Evaluation & Ablation Study
 
-This project includes a rigorous, **fully programmatic** evaluation harness that measures retrieval quality without any LLM calls (making it fast, free, and deterministic).
+This project ships **three** complementary evaluation harnesses:
+
+1. **Retrieval ablation** ([`src/retrieval_eval.py`](src/retrieval_eval.py)) — *fully deterministic, zero LLM calls.* Scores ranked chunks against page-level gold labels and compares vector-only vs. BM25-hybrid reranking with a Wilcoxon significance test.
+2. **Answer-quality comparison** ([`src/evaluation.py`](src/evaluation.py)) — Basic RAG vs. full Agentic RAG on answer similarity, document hit-rate, and a sampled hallucination check (uses the LLM).
+3. **RAGAS** ([`src/ragas_eval.py`](src/ragas_eval.py)) — faithfulness, answer relevancy, and context precision/recall via an LLM judge.
+
+> All numbers in this section are produced by the committed harnesses and saved under `evaluation/`. The answer-quality and RAGAS runs use `llama-3.1-8b-instant` (not the 70B production model) so the evaluation stays inside Groq's free-tier token limits; treat them as relative comparisons, not absolute production figures.
 
 ### Gold Q&A Dataset
 
@@ -333,40 +344,58 @@ A curated set of **40 questions** (`data/eval/qa_gold.jsonl`):
 ### Running the Evaluation
 
 ```bash
-# Full ablation study (vector-only vs BM25 hybrid)
-python -m src.evaluation
+# 1. Deterministic retrieval ablation (vector-only vs BM25-hybrid) — no LLM calls
+python -m src.retrieval_eval            # writes evaluation/ablation_results.json
+python -m src.retrieval_eval --k 4      # different top-K cutoff
 
-# Quick smoke test (BM25 hybrid only)
-python -m src.evaluation --quick
+# 2. Answer-quality comparison (Basic RAG vs Agentic RAG) — uses the LLM
+python -m src.evaluation                # writes evaluation/comparison_report.md
 
-# Run routing unit tests
+# 3. RAGAS answer-quality (faithfulness / relevancy / context) — uses the LLM
+python -m src.ragas_eval --n 5          # writes evaluation/ragas_results.json
+
+# 4. Routing & retrieval unit tests
 python -m pytest tests/ -v
 ```
 
-### RAG Performance Ablation Comparison
+### 1. Retrieval Ablation — Vector-only vs. BM25-Hybrid (deterministic, 30 in-domain queries, top-K=6)
 
-Our ablation study evaluated **30 gold questions** across three configurations:
-
-| Metric | Basic RAG | Agentic Hybrid RAG (Original) | Adaptive Hybrid RAG (Optimized) |
+| Metric | Vector-only | BM25-Hybrid (RRF) | Δ |
 | :--- | :---: | :---: | :---: |
-| **Retrieval Score (Hybrid)** | 78.0% | 78.3% | **77.0%** |
-| **Document Hit Rate** | 100.0% | 93.3% | **93.3%** |
-| **Answer Similarity (Cosine)** | 0.855 | 0.871 | **0.856** |
-| **Strict Hallucination Rate** | 0.0% | 0.0% | **0.0%** |
-| **Lenient Hallucination Rate** | 0.0% | 0.0% | **0.0%** |
-| **Average Latency** | 11.90s | 54.80s | **16.91s** |
+| **Precision@K** | 13.9% | 13.3% | −0.6% |
+| **Recall@K** | 71.1% | 67.8% | −3.3% |
+| **MRR** | 58.3% | **65.0%** | **+6.7%** |
+| **Hit-Rate** | 73.3% | 70.0% | −3.3% |
+| **Source-Hit** | 100.0% | 100.0% | 0.0% |
+
+**Honest takeaway:** BM25-hybrid reranking via RRF lifts **MRR by ~6.7 points** (it surfaces the first relevant chunk higher up), at the cost of a small dip in recall/hit-rate as a lexically-strong chunk occasionally displaces a semantically-relevant one from the top-6. A **Wilcoxon signed-rank test** on the paired per-query MRR gives **statistic = 9.0, p = 0.21**, so on a set this small the improvement is **not statistically significant** — the honest conclusion is "promising on ranking quality, needs a larger benchmark to confirm." Hybrid is kept as the default because ranking the best chunk first benefits the downstream generator.
+
+**Out-of-domain fallback:** at the production cosine threshold (`< 0.40`), the *similarity-only* trigger fires on **0/10** OOD queries — `bge-small-en-v1.5` keeps cosine above 0.40 even for off-topic questions, so the live agent relies on its **LLM relevance grader** (not similarity alone) to escalate these to web search. This deterministic harness intentionally does not invoke that grader.
+
+**Fast-path eligibility:** only **6/30** in-domain queries clear the `≥ 0.82` fast-path gate (median top cosine ≈ 0.79), so most queries still run the full grading/critique pipeline — the fast path is an optimization for the highest-confidence queries, not the common case.
+
+### 2. Answer Quality — Basic RAG vs. Agentic RAG (30 questions, `llama-3.1-8b-instant`)
+
+| Metric | Basic RAG | Agentic RAG |
+| :--- | :---: | :---: |
+| **Retrieval Score** | 78.0% | 78.4% |
+| **Document Hit Rate** | 100.0% | 96.7% |
+| **Answer Similarity (Cosine)** | 0.855 | **0.866** |
+| **Strict Hallucination Rate** | 0.0% | 0.0% |
+| **Average Latency** | 11.90s | 62.82s |
 
 > [!NOTE]
-> **Observation on Hallucinations:** No unsupported answers were detected in the evaluated hallucination sample (9 judged queries).
+> Hallucination is an LLM-judged sample of 9 queries (3 per document). The agentic pipeline nudges answer similarity up (0.866 vs 0.855) and keeps hallucinations at 0% in the sample, but the grading/critique/web-fallback loop costs ~5× latency on the 8B model — exactly the trade-off the adaptive fast-path is meant to mitigate for high-confidence queries.
 
-#### Key Takeaways:
-* **69% Latency Speedup:** By adding Fast-Path Routing (Adaptive RAG), the average latency of the Agentic system dropped from **54.8s** to **16.91s** because 27 out of 30 questions bypassed the slow grading/critique steps.
-* **Accuracy Maintained:** The Cosine Answer Similarity remained at **0.856** (compared to Basic's 0.855 and original Agentic's 0.871), proving that bypassing critiques for highly confident matches does not impact generation quality.
-* **Smart Fallback:** Lower-confidence queries (such as Maternity and Adoption leave policies) were still correctly routed to the standard path and Tavily Web Search.
+### 3. RAGAS (LLM-judged, sample run)
 
-### Statistical Significance
+A representative `python -m src.ragas_eval --n 2` run on in-domain questions:
 
-The ablation study compares vector-only vs BM25-hybrid retrieval using the **Wilcoxon signed-rank test** on paired per-query MRR scores. If `p < 0.05`, the improvement is statistically significant.
+| Faithfulness | Answer Relevancy | Context Precision | Context Recall |
+| :---: | :---: | :---: | :---: |
+| 1.00 | 0.96 | 0.50 | 1.00 |
+
+High faithfulness/recall (answers are grounded and the gold answer is covered) with middling context precision (some retrieved chunks aren't strictly necessary) — consistent with the recall-favoring top-6 retrieval. Increase `--n` for a larger sample (costs more Groq tokens).
 
 ---
 
@@ -406,7 +435,7 @@ If the critique step fails, the system regenerates the answer one more time usin
 The project uses the free local embedding model `BAAI/bge-small-en-v1.5` to avoid API costs. While it works well, its similarity scores are very close together, making it harder to perfectly separate relevant and irrelevant chunks compared to larger commercial embedding models.
 
 ### Latency vs. Accuracy (Adaptive RAG)
-Every safety mechanism (grading, critique, retry) adds LLM calls and latency. A full Agentic pipeline with web fallback and retry can take over 50 seconds. **Tradeoff:** We resolved this by implementing **Adaptive RAG (Fast-Path Routing)**. Confident retrievals (similarity $\ge 0.82$) bypass grading and critique nodes to run in a single retrieve-and-generate cycle, dropping average latency by 69% to 16.91 seconds.
+Every safety mechanism (grading, critique, retry) adds LLM calls and latency — the full Agentic pipeline measured **~63s** per query on the 8B model vs. **~12s** for plain retrieve-and-generate. **Tradeoff:** **Adaptive RAG (Fast-Path Routing)** lets the highest-confidence retrievals (max similarity $\ge 0.82$) bypass grading and critique and run in a single retrieve→generate cycle. On the gold set this fast path is eligible for 6/30 queries; it is an optimization for confident queries rather than a blanket speed-up, and the full pipeline remains the default for everything below the threshold.
 
 ### Grader Pronoun Leniency
 In the original pipeline, the LLM document grader rejected correct PDF pages (like Page 71 of Tesla's annual report) because they referred to the company using pronouns ("we", "our", "the company") rather than the exact search keyword ("Tesla"). **Solution:** We injected document context into the LLM prompts so the grading and critique nodes resolve these pronouns correctly.

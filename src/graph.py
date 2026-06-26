@@ -3,7 +3,6 @@ import re
 from dotenv import load_dotenv
 load_dotenv()
 
-import asyncio
 from typing import List, Dict, Any
 from typing_extensions import TypedDict
 
@@ -14,7 +13,7 @@ from pydantic import BaseModel, Field
 from langchain_groq import ChatGroq
 
 from langgraph.graph import END, StateGraph, START
-from src.database import get_local_retriever
+from src.retrieval import dedupe_with_scores, hybrid_rerank
 
 
 # 1. Environment Configuration
@@ -51,6 +50,7 @@ class GraphState(TypedDict):
     critique_feedback: str
     confidence: str
     source: str
+    intent: str
 
 # 3. Setup Groq LLM, Retriever, and Tools
 
@@ -67,6 +67,12 @@ class CritiqueResult(BaseModel):
     reason: str = Field(description="Brief reason if FAIL, else empty")
 
 critique_parser = JsonOutputParser(pydantic_object=CritiqueResult)
+
+class CondenseResult(BaseModel):
+    intent: str = Field(description="Classify query type: 'chitchat' (greetings, small talk, meta-questions about conversation history, or asking who you are) or 'factual' (asking for facts, policies, statistics, or details from documents)")
+    rewritten_question: str = Field(description="The standalone rewritten question if it refers to history context, or the original question word-for-word if it is already standalone")
+
+condense_parser = JsonOutputParser(pydantic_object=CondenseResult)
 
 critique_system_prompt = """Check answer against context:
 1. Unsupported claims
@@ -114,109 +120,88 @@ def condense_question(state: GraphState) -> Dict[str, Any]:
     question = state["question"]
     chat_history = state.get("chat_history", [])
     
-    if not chat_history:
-        print("-> No chat history. Bypassing query condensation LLM call.")
-        return {"question": question, "original_question": question}
-        
-    print(f"-> Chat history found ({len(chat_history)} messages). Condensing...")
-    # Get last 10 messages (5 turns)
-    history_window = chat_history[-10:]
-    
     # Format the history for the LLM
     history_str = ""
-    for msg in history_window:
-        role = "User" if msg.get("role") == "user" else "Assistant"
-        content = msg.get("content", "")
-        sources = msg.get("sources", [])
-        sources_str = f" [Sources: {', '.join(sources)}]" if sources else ""
-        history_str += f"{role}: {content}{sources_str}\n"
+    if chat_history:
+        print(f"-> Chat history found ({len(chat_history)} messages). Contextualizing...")
+        history_window = chat_history[-10:]
+        for msg in history_window:
+            role = "User" if msg.get("role") == "user" else "Assistant"
+            content = msg.get("content", "")
+            sources = msg.get("sources", [])
+            sources_str = f" [Sources: {', '.join(sources)}]" if sources else ""
+            history_str += f"{role}: {content}{sources_str}\n"
+    else:
+        history_str = "(No previous conversation)"
         
     condense_prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are an expert query contextualizer. Given a conversation history and a follow-up question, "
-                   "determine if the follow-up question refers to context or pronouns in the history. "
-                   "If it does, rewrite the follow-up question into a standalone, complete question that can be understood "
-                   "without any chat history (suitable for search/retrieval). "
-                   "If it is already a complete question or does not refer to the history, respond with the original question word-for-word. "
-                   "Do NOT explain or add any introductory text. Return ONLY the rewritten question."),
+        ("system", "You are an expert query analyzer. Analyze the conversation history and the follow-up question.\n"
+                   "1. Classify the user's intent as 'chitchat' (if it is a greeting, small talk, meta-question about the chat history, or questions about you) or 'factual' (if it is asking for facts, policies, statistics, or details from documents).\n"
+                   "2. If it is 'factual', determine if the question refers to context or pronouns in the history. Rewrite it into a standalone, complete question. If it is already standalone or 'chitchat', keep it as-is.\n\n"
+                   "You must respond strictly in JSON matching this schema:\n{format_instructions}"),
         ("human", "Conversation History:\n{history}\n\nFollow-up Question: {question}")
-    ])
+    ]).partial(format_instructions=condense_parser.get_format_instructions())
     
-    condenser_chain = condense_prompt | llm
-    rewritten_question = condenser_chain.invoke({"history": history_str, "question": question}).content.strip()
+    condenser_chain = condense_prompt | llm | condense_parser
+    
+    intent = "factual"
+    rewritten_question = question
+    try:
+        res = condenser_chain.invoke({"history": history_str, "question": question})
+        intent = res.get("intent", "factual").lower().strip()
+        rewritten_question = res.get("rewritten_question", question).strip()
+    except Exception as e:
+        print(f"-> Condenser/Classifier failed: {e}. Defaulting to factual.")
+        
     print(f"-> Original Question: {question}")
+    print(f"-> Classified Intent: {intent}")
     print(f"-> Rewritten Standalone Question: {rewritten_question}")
     
     return {
         "question": rewritten_question,
-        "original_question": question
+        "original_question": question,
+        "intent": intent
     }
 
 
 def retrieve(state: GraphState) -> Dict[str, Any]:
-    print("--- RETRIEVING DOCUMENTS (k=20) ---")
+    print("--- RETRIEVING DOCUMENTS (k=60 candidates -> BM25+RRF hybrid rerank -> top 6) ---")
     question = state["question"]
     source_filter = state.get("source")
-    
+
     from src.database import get_vectorstore
-        
+
     vectorstore = get_vectorstore()
-    
+
     # Setup document metadata filtering
     filter_dict = None
     if source_filter and source_filter != "all":
         filter_dict = {"source": os.path.basename(source_filter)}
         print(f"-> Filtering retrieval by document source: {filter_dict['source']}")
-    
-    # Retrieve top 60 candidates
-    # Pinecone returns (Document, score) where score is cosine similarity (0-1, higher = more similar)
+
+    # 1. Dense retrieval: top-60 candidates.
+    # Pinecone returns (Document, score) where score is cosine similarity (0-1, higher = more similar).
     docs_with_scores = vectorstore.similarity_search_with_score(question, k=60, filter=filter_dict)
-    
-    # Normalize path and deduplicate based on content
-    seen_contents = set()
-    unique_docs_with_scores = []
-    for doc, score in docs_with_scores:
-        if "source" in doc.metadata:
-            doc.metadata["source"] = os.path.basename(doc.metadata["source"])
-            
-        cleaned = " ".join(doc.page_content.split())
-        if cleaned not in seen_contents:
-            seen_contents.add(cleaned)
-            # Pinecone cosine similarity is already 0-1 (higher = more similar)
-            similarity = max(0.0, min(1.0, score))
-            doc.metadata["score"] = similarity
-            unique_docs_with_scores.append((doc, similarity))
-            
-    # Apply lexical keyword boosting (hybrid reranking)
-    stop_words = {"what", "are", "all", "the", "different", "scenarios", "where", "an", "employee", "service", "can", "be", "regularized", "or", "impacted", "by", "leave", "without", "pay", "is", "a", "of", "in", "to", "for", "on", "with", "at", "by", "from", "it", "this", "that"}
-    words = re.findall(r'\b\w+\b', question.lower())
-    keywords = [w for w in words if len(w) > 2 and w not in stop_words]
-    
-    reranked_docs = []
-    for doc, similarity in unique_docs_with_scores:
-        content_lower = doc.page_content.lower()
-        matches = sum(1 for kw in keywords if kw in content_lower)
-        lexical_score = min(1.0, matches / max(1, len(keywords)))
-        
-        # Combined score: 60% semantic + 40% lexical
-        combined_score = 0.6 * similarity + 0.4 * lexical_score
-        doc.metadata["combined_score"] = combined_score
-        reranked_docs.append((doc, combined_score))
-        
-    reranked_docs.sort(key=lambda x: x[1], reverse=True)
-    
-    # Keep top 6 chunks (safety recall margin buffer)
-    top_docs_with_scores = reranked_docs[:6]
-    
-    # Compress content: clean up whitespace
+
+    # 2. Normalize sources, clamp cosine, and deduplicate by content.
+    unique_docs_with_scores = dedupe_with_scores(docs_with_scores)
+
+    # 3. Hybrid rerank: fuse the dense (cosine) ranking with a BM25 lexical
+    #    ranking over the same candidate pool via Reciprocal Rank Fusion, then
+    #    keep the top 6. Raw cosine is preserved on metadata["score"] so the
+    #    downstream routers/confidence still reason about semantic similarity.
+    top_docs = hybrid_rerank(unique_docs_with_scores, question, top_n=6, mode="hybrid")
+
+    # 4. Compress content: clean up whitespace.
     final_docs = []
-    for doc, _ in top_docs_with_scores:
+    for doc in top_docs:
         content = doc.page_content
         content = re.sub(r'\n{3,}', '\n\n', content)
         content = re.sub(r' {2,}', ' ', content)
         doc.page_content = content.strip()
         final_docs.append(doc)
-        
-    print(f"-> Retained {len(final_docs)} reranked compressed unique chunks.")
+
+    print(f"-> Retained {len(final_docs)} BM25+RRF reranked compressed unique chunks.")
     return {
         "documents": final_docs,
         "question": question,
@@ -300,10 +285,35 @@ def grade_documents(state: GraphState) -> Dict[str, Any]:
 def generate(state: GraphState) -> Dict[str, Any]:
     print("--- GENERATING ANSWER WITH GROQ ---")
     question = state["question"]
-    documents = state["documents"]
+    documents = state.get("documents", [])
     critique_feedback = state.get("critique_feedback", "")
     retry_count = state.get("retry_count", 0)
+    intent = state.get("intent", "factual")
     
+    if intent == "chitchat":
+        print("--- GENERATING CHITCHAT/META RESPONSE ---")
+        chat_history = state.get("chat_history", [])
+        
+        # Build history string
+        history_str = ""
+        for msg in chat_history:
+            role = "User" if msg.get("role") == "user" else "Assistant"
+            content = msg.get("content", "")
+            history_str += f"{role}: {content}\n"
+            
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "You are a helpful AI assistant. Answer the user's question directly based on your conversation history. "
+                       "If they ask what was discussed, summarize the previous topics and turns. If they greet you, greet them back. "
+                       "If they ask who you are, introduce yourself as the RAG Core Agent. "
+                       "You do not have external document context for this turn, so speak from the conversation itself. "
+                       "Be concise, natural, and helpful. Do not mention any JSON formatting or technical pipelines."),
+            ("human", "Conversation History:\n{history}\n\nQuestion: {question}")
+        ])
+        
+        chain = prompt | llm
+        generation = chain.invoke({"history": history_str, "question": question})
+        return {"documents": [], "question": question, "generation": generation.content}
+        
     if not documents:
         return {"documents": [], "question": question, "generation": "I could not find relevant information."}
     
@@ -456,6 +466,12 @@ def save_history(state: GraphState) -> Dict[str, Any]:
     return {"chat_history": chat_history}
 
 # 5. Define Conditional Routing Logic
+def decide_post_condense(state: GraphState) -> str:
+    if state.get("intent") == "chitchat":
+        print("--- DECISION: CHITCHAT/META QUERY DETECTED. Routing directly to Generate! ---")
+        return "generate"
+    return "retrieve"
+
 def decide_post_retrieve(state: GraphState) -> str:
     documents = state.get("documents", [])
     local_similarities = [doc.metadata.get("score", 0.0) for doc in documents]
@@ -482,6 +498,10 @@ def decide_post_generate(state: GraphState) -> str:
     max_similarity = max(local_similarities) if local_similarities else 0.0
     is_web_fallback = any(doc.metadata.get("source") == "web_fallback" for doc in documents)
     
+    if state.get("intent") == "chitchat":
+        print("--- DECISION: CHITCHAT BYPASS CRITIQUE. Routing directly to Save History! ---")
+        return "save_history"
+        
     if max_similarity >= 0.82 and not is_web_fallback and state.get("retry_count", 0) == 0:
         print("--- DECISION: FAST-PATH BYPASS CRITIQUE. Routing directly to Save History! ---")
         return "save_history"
@@ -509,7 +529,14 @@ workflow.add_node("critique_generation", critique_generation)
 workflow.add_node("save_history", save_history)
 
 workflow.add_edge(START, "condense_question")
-workflow.add_edge("condense_question", "retrieve")
+workflow.add_conditional_edges(
+    "condense_question",
+    decide_post_condense,
+    {
+        "retrieve": "retrieve",
+        "generate": "generate"
+    }
+)
 workflow.add_conditional_edges(
     "retrieve",
     decide_post_retrieve,
