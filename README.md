@@ -376,16 +376,17 @@ python -m pytest tests/ -v
 
 ### 2. Answer Quality — Basic RAG vs. Agentic RAG (30 questions, `llama-3.1-8b-instant`)
 
-| Metric | Basic RAG | Agentic RAG |
+| Metric | Basic RAG | Agentic Hybrid RAG |
 | :--- | :---: | :---: |
-| **Retrieval Score** | 78.0% | 78.4% |
+| **Retrieval Score (Hybrid)** | **80.6%** | 80.1% |
 | **Document Hit Rate** | 100.0% | 96.7% |
-| **Answer Similarity (Cosine)** | 0.855 | **0.866** |
+| **Answer Similarity (Cosine)** | 0.848 | **0.857** |
 | **Strict Hallucination Rate** | 0.0% | 0.0% |
-| **Average Latency** | 11.90s | 62.82s |
+| **Lenient Hallucination Rate** | 33.3% | 44.4% |
+| **Average Latency** | 16.37s | 68.14s |
 
 > [!NOTE]
-> Hallucination is an LLM-judged sample of 9 queries (3 per document). The agentic pipeline nudges answer similarity up (0.866 vs 0.855) and keeps hallucinations at 0% in the sample, but the grading/critique/web-fallback loop costs ~5× latency on the 8B model — exactly the trade-off the adaptive fast-path is meant to mitigate for high-confidence queries.
+> Hallucination metrics are based on an LLM-judged sample of 9 queries (3 per document source). Both pipelines are strictly faithful (0.0% strict hallucination rate, meaning no fully unsupported claims). However, under a lenient check (which includes partially supported claims), the Agentic pipeline has a 44.4% rate compared to Basic RAG's 33.3%. This is a trade-off of the agent's self-critique loop which generates more elaborative, detailed answers, introducing true facts (parametric leakage) that were not present in the specific retrieved 6 chunks. The agentic pipeline successfully boosts answer similarity (0.857 vs. 0.848) but at a ~4× latency cost.
 
 ### 3. RAGAS (LLM-judged, sample run)
 
@@ -435,7 +436,7 @@ If the critique step fails, the system regenerates the answer one more time usin
 The project uses the free local embedding model `BAAI/bge-small-en-v1.5` to avoid API costs. While it works well, its similarity scores are very close together, making it harder to perfectly separate relevant and irrelevant chunks compared to larger commercial embedding models.
 
 ### Latency vs. Accuracy (Adaptive RAG)
-Every safety mechanism (grading, critique, retry) adds LLM calls and latency — the full Agentic pipeline measured **~63s** per query on the 8B model vs. **~12s** for plain retrieve-and-generate. **Tradeoff:** **Adaptive RAG (Fast-Path Routing)** lets the highest-confidence retrievals (max similarity $\ge 0.82$) bypass grading and critique and run in a single retrieve→generate cycle. On the gold set this fast path is eligible for 6/30 queries; it is an optimization for confident queries rather than a blanket speed-up, and the full pipeline remains the default for everything below the threshold.
+Every safety mechanism (grading, critique, retry) adds LLM calls and latency — the full Agentic pipeline measured **~68s** per query on the 8B model vs. **~16s** for plain retrieve-and-generate. **Tradeoff:** **Adaptive RAG (Fast-Path Routing)** lets the highest-confidence retrievals (max similarity $\ge 0.82$) bypass grading and critique and run in a single retrieve→generate cycle. On the gold set this fast path is eligible for 6/30 queries; it is an optimization for confident queries rather than a blanket speed-up, and the full pipeline remains the default for everything below the threshold.
 
 ### Grader Pronoun Leniency
 In the original pipeline, the LLM document grader rejected correct PDF pages (like Page 71 of Tesla's annual report) because they referred to the company using pronouns ("we", "our", "the company") rather than the exact search keyword ("Tesla"). **Solution:** We injected document context into the LLM prompts so the grading and critique nodes resolve these pronouns correctly.

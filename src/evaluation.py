@@ -161,9 +161,12 @@ def check_hallucination(retrieved_chunks: str, answer: str) -> str:
         # Wrap in our robust rate limit helper
         res = invoke_llm_with_backoff(chain, {"retrieved_chunks": retrieved_chunks, "answer": answer})
         val = res.content.strip().upper()
-        
-        # Exact word extraction
-        for label in ["SUPPORTED", "PARTIALLY_SUPPORTED", "UNSUPPORTED"]:
+
+        # Exact word extraction. Order matters: "SUPPORTED" is a substring of
+        # both "UNSUPPORTED" and "PARTIALLY_SUPPORTED", so the more specific
+        # labels MUST be checked first, otherwise every result collapses to
+        # "SUPPORTED" and hallucinations can never be detected.
+        for label in ["PARTIALLY_SUPPORTED", "UNSUPPORTED", "SUPPORTED"]:
             if label in val:
                 return label
         return "UNSUPPORTED"

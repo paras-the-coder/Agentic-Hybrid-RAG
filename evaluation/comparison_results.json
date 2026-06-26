@@ -1,15 +1,15 @@
 {
   "basic_rag": {
     "aggregates": {
-      "avg_retrieval": 0.779724551563868,
+      "avg_retrieval": 0.8060286842528009,
       "doc_hit_rate": 1.0,
-      "avg_similarity": 0.8551993866761526,
+      "avg_similarity": 0.8475868761539459,
       "strict_halluc": 0.0,
-      "lenient_halluc": 0.0,
-      "avg_latency": 11.897234344482422,
+      "lenient_halluc": 0.3333333333333333,
+      "avg_latency": 16.36683622201284,
       "breakdown": {
-        "SUPPORTED": 9,
-        "PARTIALLY_SUPPORTED": 0,
+        "SUPPORTED": 6,
+        "PARTIALLY_SUPPORTED": 3,
         "UNSUPPORTED": 0,
         "SKIPPED": 21
       }
@@ -18,316 +18,316 @@
       {
         "question": "What is the total automotive revenue reported by Tesla for the year ended December 31, 2025?",
         "ground_truth": "Tesla reported total automotive revenues for the year ended December 31, 2025 in its annual filing.",
-        "answer": "The total automotive revenue reported by Tesla for the year ended December 31, 2025 is $69,526 million.",
-        "retrieval_score": 0.7832012176513672,
-        "ans_similarity": 0.9426836967468262,
+        "answer": "According to the provided context, the total automotive revenue reported by Tesla for the year ended December 31, 2025 is $82,056 million.",
+        "retrieval_score": 0.7692260146141052,
+        "ans_similarity": 0.9460605978965759,
         "doc_hit": 1.0,
         "hallucination": "SUPPORTED",
-        "latency": 10.661766767501831
+        "latency": 14.110560655593872
       },
       {
         "question": "How much did Tesla's services and other revenue increase in 2025 compared to 2024?",
         "ground_truth": "Services and other revenue increased $2.00 billion, or 19%, in the year ended December 31, 2025 as compared to 2024.",
         "answer": "According to the provided context, Tesla's services and other revenue increased $2.00 billion, or 19%, in the year ended December 31, 2025 as compared to the year ended December 31, 2024.",
-        "retrieval_score": 0.8470857501029968,
-        "ans_similarity": 0.8678401708602905,
+        "retrieval_score": 0.8868640959262848,
+        "ans_similarity": 0.8678403496742249,
         "doc_hit": 1.0,
         "hallucination": "SUPPORTED",
-        "latency": 3.913588762283325
+        "latency": 7.271140098571777
       },
       {
         "question": "How much did Tesla's energy generation and storage revenue increase in 2025?",
         "ground_truth": "Energy generation and storage revenue increased $2.69 billion, or 27%, in the year ended December 31, 2025 as compared to 2024, primarily due to increases in Megapack and Powerwall deployments.",
         "answer": "According to the provided context, Tesla's energy generation and storage revenue increased $2.69 billion, or 27%, in the year ended December 31, 2025 as compared to the year ended December 31, 2024.",
-        "retrieval_score": 0.9027856179961451,
+        "retrieval_score": 0.8666152247676142,
         "ans_similarity": 0.8878539204597473,
         "doc_hit": 1.0,
         "hallucination": "SUPPORTED",
-        "latency": 15.440897941589355
+        "latency": 20.441356897354126
       },
       {
         "question": "What percentage of eligible compensation can employees contribute to Tesla's 401(k) plan?",
         "ground_truth": "Participating employees may elect to contribute up to 90% of their eligible compensation, subject to certain limitations.",
-        "answer": "According to the provided context, employees participating in Tesla's 401(k) savings plan may elect to contribute up to 90% of their eligible compensation, subject to certain limitations.",
-        "retrieval_score": 0.7821678201357524,
-        "ans_similarity": 0.8535966873168945,
+        "answer": "Employees may elect to contribute up to 90% of their eligible compensation to Tesla's 401(k) plan.",
+        "retrieval_score": 0.7775250355402629,
+        "ans_similarity": 0.8207991123199463,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 11.72064471244812
+        "latency": 16.693687438964844
       },
       {
         "question": "How much does Tesla match in employee 401(k) contributions?",
         "ground_truth": "Tesla matches 50% of each employee's contributions up to a maximum of 6% (capped at $3,000) of the employee's eligible compensation, vested upon one year of service.",
-        "answer": "According to the provided context, Tesla matches 50% of each employee's contributions up to a maximum of 6% (capped at $3,000) of the employee's eligible compensation, vested upon one year of service.",
-        "retrieval_score": 0.6632230618725652,
-        "ans_similarity": 0.9847637414932251,
+        "answer": "I don't know. The provided context does not mention Tesla matching employee 401(k) contributions. It does mention industry-leading benefits like free counseling, paid parental leave, and comprehensive healthcare options available from day one, but it does not mention 401(k) matching.",
+        "retrieval_score": 0.5294993934424027,
+        "ans_similarity": 0.7232534885406494,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 13.283233404159546
+        "latency": 19.928755283355713
       },
       {
         "question": "What was the amount of employer contribution expenses Tesla recognized for the 401(k) plan in 2025?",
         "ground_truth": "Tesla recognized $103 million of expenses related to employer contributions for the 401(k) savings plan in 2025.",
-        "answer": "I don't know the amount of employer contribution expenses Tesla recognized for the 401(k) plan in 2025. The provided context mentions the amount of expenses related to employer contributions for the 401(k) savings plan for the years ended December 31, 2025, 2024, and 2023, but it does not specify the breakdown for 2025.",
-        "retrieval_score": 0.8313085121266982,
-        "ans_similarity": 0.8005839586257935,
+        "answer": "According to the provided context, Tesla recognized $103 million of expenses related to employer contributions for the 401(k) savings plan in 2023, $107 million in 2024, and $99 million in 2025.",
+        "retrieval_score": 0.7640779579386991,
+        "ans_similarity": 0.9308359622955322,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 14.46624231338501
+        "latency": 21.539672374725342
       },
       {
         "question": "How much was Tesla's valuation allowance for deferred tax assets as of December 31, 2025?",
         "ground_truth": "Tesla maintained valuation allowances of $1.77 billion for deferred tax assets that are not more likely than not to be realized.",
-        "answer": "According to the provided context, as of December 31, 2025, Tesla's valuation allowance for deferred tax assets was $1.77 billion.",
-        "retrieval_score": 0.7834916591644288,
-        "ans_similarity": 0.8612717390060425,
+        "answer": "According to the provided context, Tesla's valuation allowance for deferred tax assets as of December 31, 2025, was $1.765 billion.",
+        "retrieval_score": 0.8084916591644287,
+        "ans_similarity": 0.8306165933609009,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 15.661254405975342
+        "latency": 22.63275146484375
       },
       {
         "question": "What are Tesla's operating cash outflows from operating leases in 2025?",
         "ground_truth": "Tesla's operating cash outflows from operating leases were $1,743 million in 2025.",
-        "answer": "According to the provided context, Tesla's operating cash outflows from operating leases in 2025 is $1,743 million.",
-        "retrieval_score": 0.6942283565347844,
-        "ans_similarity": 0.9803349375724792,
+        "answer": "According to the provided context, Tesla's operating cash outflows from operating leases in 2025 are $1,743 million.",
+        "retrieval_score": 0.7467090379108082,
+        "ans_similarity": 0.9820986986160278,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 17.020099878311157
+        "latency": 22.412214040756226
       },
       {
         "question": "What cybersecurity oversight does Tesla's Board of Directors provide?",
         "ground_truth": "The Board is briefed by management, including leaders from Information Security, Product Security, Compliance and Legal teams regarding matters of cybersecurity, including existing and new cybersecurity risks, status on how management is addressing those risks, and cybersecurity incidents.",
-        "answer": "According to the provided context, Tesla's Board of Directors provides the following cybersecurity oversight:\n\n1. The Audit Committee is responsible for the oversight of risks from cybersecurity threats.\n2. Members of the Audit Committee receive updates on a quarterly basis from senior management, including leaders from the Information Security, Product Security, Compliance, and Legal teams regarding matters of cybersecurity.\n3. The updates include existing and new cybersecurity risks, status on how management is addressing and/or mitigating those risks, cybersecurity and data privacy incidents (if any), and status on key information security initiatives.\n4. Board members also engage in ad hoc conversations with management on cybersecurity-related news events and discuss any updates to the company's cybersecurity risk management and strategy programs.\n5. The Board's cybersecurity risk management and strategy processes are overseen by leaders from the Information Security, Product Security, Compliance, and Legal teams, who report to the Audit Committee on any appropriate items.",
-        "retrieval_score": 0.7292463173789363,
-        "ans_similarity": 0.7120084762573242,
+        "answer": "Based on the provided context, Tesla's Board of Directors, specifically the Audit Committee, is responsible for the oversight of risks from cybersecurity threats. Members of the Audit Committee receive updates on a quarterly basis from senior management, including leaders from the Information Security, Product Security, Compliance, and Legal teams regarding matters of cybersecurity. This includes existing and new cybersecurity risks, status on how management is addressing and/or mitigating those risks, cybersecurity and data privacy incidents (if any), and status on key information security initiatives.",
+        "retrieval_score": 0.8092511132840188,
+        "ans_similarity": 0.7328557968139648,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 12.316198110580444
+        "latency": 18.910114765167236
       },
       {
         "question": "What is the 2025 CEO Performance Award structure at Tesla?",
         "ground_truth": "The 2025 CEO performance award consists of 12 tranches of performance-based restricted stock, each containing a market capitalization milestone and an operational milestone that must be met for the tranche to vest, in addition to a service condition. The fair value was determined using a Monte Carlo valuation model.",
-        "answer": "Based on the provided context, the 2025 CEO Performance Award structure at Tesla includes the following:\n\n1. **Restricted Stock**: The award includes restricted stock that will be immediately forfeited and returned to the Company if a \"Tornetta Decision Event\" occurs, which is a final, non-appealable judgment, order, or decision of the Delaware courts with respect to the action captioned Tornetta v. Elon Musk et al., C.A. No. 2018-0408-KSJM (Del. Ch.), or any pending or future appeal, including In re Tesla, Inc. Derivative Litigation, Nos. 10, 2025, 11, 2025 (Del.) that results in the CEO becoming able to exercise in full the 2018 CEO Performance Award.\n\n2. **Reduction of Shares**: If a Tornetta Decision Event occurs before the 2025 CEO Interim Award vests, shares covered by the 2025 CEO Interim Award will be reduced to the extent that the sum of the 2025 CEO Interim Award shares and any amount of options exercisable under the 2018 CEO Performance Award exceeds the total number of options subject to the 2018 CEO Performance Award in full (the \"Excess Amount\").\n\n3. **Return or Repayment**: If a Tornetta Decision Event occurs after the 2025 CEO Interim Award vests, the CEO will return or otherwise repay the Company for shares issued under the 2025 CEO Interim Award (with the Company returning or repaying the Purchase Price) or forfeit options underlying the 2018 CEO Performance Award equal to the Excess Amount.\n\n4. **Stock-Based Compensation Expense**: The award is subject to stock-based compensation expense, which is recorded as Selling, general and administrative expense on Tesla's consolidated statement of operations. As of December 31, 2025, Tesla had unrecognized stock-based compensation expense of $10.23 billion for the operational milestone that was considered probable of achievement over the term of the award, which is expected to be recognized over 9.7 years.",
-        "retrieval_score": 0.6200299859046936,
-        "ans_similarity": 0.7923716306686401,
+        "answer": "According to the provided context, the 2025 CEO Performance Award structure at Tesla is as follows:\n\n- The Board of Directors granted approximately 423.7 million shares of performance-based restricted stock to Elon Musk on September 3, 2025 (the \"2025 CEO Performance Award Grant Date\").\n- The award is performance-based, meaning that each of the 12 tranches of the award will become \"Earned Shares\" upon Elon Musk remaining in Eligible Service and the certification by disinterested directors that the following have been achieved:\n  - The market capitalization milestone for such tranche.\n  - Any one of the twelve operational milestones (clauses (i) and (ii), together the \"Performance Milestones\").\n- Elon Musk will be able to direct the vote of such Earned Shares.\n- Until such time as there are no shares under the 2025 CEO Performance Award that are not earned, Elon Musk's Unearned Shares will vote proportionately to the votes of all other shares of Tesla's capital stock that are present and entitled to vote at any annual or special meeting (or similar action) of Tesla's shareholders (including Elon Musk).\n- The \"no double dip\" provision means that if Elon Musk gains the ability to exercise the 2018 CEO Performance Award, there will be no material additional benefit to him because the total number of shares awarded under the 2025 CEO Performance Award together with the 2018 CEO Performance Award cannot exceed the number of shares underlying the 2018 CEO Performance Award.",
+        "retrieval_score": 0.7349886511053358,
+        "ans_similarity": 0.8382660150527954,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 16.374428749084473
+        "latency": 23.020039796829224
       },
       {
         "question": "What is the name of the group health insurance scheme described in the Membership Handbook?",
         "ground_truth": "The group health insurance scheme is called Bupa HealthNet.",
-        "answer": "The name of the group health insurance scheme described in the Membership Handbook is the \"Group Health Insurance Scheme\" or \"the Scheme\" for short, which is administered and underwritten by Bupa (Asia) Limited.",
-        "retrieval_score": 0.7887289755874209,
-        "ans_similarity": 0.8163164854049683,
+        "answer": "The name of the group health insurance scheme described in the Membership Handbook is the \"Group Health Insurance Scheme\" or \"the Scheme\" for short.",
+        "retrieval_score": 0.8012277715735965,
+        "ans_similarity": 0.7427289485931396,
         "doc_hit": 1.0,
         "hallucination": "SUPPORTED",
-        "latency": 14.205617904663086
+        "latency": 14.021000623703003
       },
       {
         "question": "What opportunity does Bupa offer Scheme members to boost their coverage?",
         "ground_truth": "Bupa offers Scheme members the opportunity to join a designated individual health insurance scheme at the member's own cost at different life stages (e.g., upon renewal, before or after changing jobs, before retirement) to boost their cover.",
         "answer": "Bupa offers Scheme members the opportunity to join their designated individual health insurance scheme at different life stages (e.g., upon renewal of your group scheme, before or after changing jobs, before retirement) to boost their cover.",
-        "retrieval_score": 0.8797960579395294,
-        "ans_similarity": 0.9746907949447632,
+        "retrieval_score": 0.8954209983348846,
+        "ans_similarity": 0.9746907353401184,
         "doc_hit": 1.0,
         "hallucination": "SUPPORTED",
-        "latency": 14.626505613327026
+        "latency": 15.319519281387329
       },
       {
         "question": "How do you claim Hospital and Surgical Benefit using a BHN Card?",
         "ground_truth": "Present the BHN Card for registration at the hospital, sign the voucher, complete Part I of the Bupa Hospital Claim Form, and the hospital administrator will arrange for completion of Part II by the attending Registered Medical Practitioner.",
-        "answer": "To claim Hospital and Surgical Benefit using a BHN Card, follow these steps:\n\n1. At the hospital:\n   - Present your BHN Card for registration.\n   - Sign the voucher.\n   - Complete Part I of the Bupa Hospital Claim Form.\n   - The hospital administrator will arrange for completion of Part II of the Claim Form by the attending Registered Medical Practitioner.\n\n2. Upon discharge:\n   - Settle payment by BHN Card.\n   - Settle the medical bill by yourself first and obtain the original receipt.\n   - Obtain the medical report or Discharge Summary, if any.\n\n3. After discharge:\n   - Bupa will settle the expenses directly with the hospital.\n   - Bupa will notify you to settle any shortfall, if any.\n   - Within 90 days after the date of discharge, submit to Bupa:\n     - Completed Bupa Hospital Claim Form\n     - Original hospital receipt\n     - Medical report (if applicable)\n     - Discharge Summary / Sick Leave Certificate (if applicable)\n   - You can also submit your claims online by uploading the images of the above documents to myBupa within 90 days after the date of treatment.\n\nPlease note that you should keep the original receipt for 6 months from the date of claim submission, as Bupa may request it for auditing purposes.",
-        "retrieval_score": 0.8528477621489557,
-        "ans_similarity": 0.8448423147201538,
+        "answer": "To claim Hospital and Surgical Benefit using a BHN Card, follow these steps:\n\n1. At the hospital:\n   - Present your BHN Card for registration.\n   - Sign the voucher.\n   - Complete Part I of the Bupa Hospital Claim Form.\n   - The hospital administrator will arrange for completion of Part II of the Claim Form by the attending Registered Medical Practitioner.\n\n2. Upon discharge:\n   - Settle payment by BHN Card.\n   - Settle the medical bill by yourself first and obtain the original receipt.\n   - Obtain the medical report or Discharge Summary, if any.\n\n3. After discharge:\n   - Bupa will settle the expenses directly with the hospital.\n   - Bupa will notify you to settle any shortfall, if any.\n   - Within 90 days after the date of discharge, submit to Bupa:\n     - Completed Bupa Hospital Claim Form\n     - Original hospital receipt\n     - Medical report (if applicable)\n     - Discharge Summary / Sick Leave Certificate (if applicable)\n   - You can also submit your claims online by uploading the images of the above documents to myBupa within 90 days after the date of treatment.\n\nPlease note that your BHN Card must be embossed with \"HOSPITAL & CLINICAL\" to use it for claiming Hospital and Surgical Benefit.",
+        "retrieval_score": 0.8521248472147974,
+        "ans_similarity": 0.8429237604141235,
         "doc_hit": 1.0,
-        "hallucination": "SUPPORTED",
-        "latency": 11.654173851013184
+        "hallucination": "PARTIALLY_SUPPORTED",
+        "latency": 17.725991249084473
       },
       {
         "question": "How do you claim Network Dental Benefit at a Network Dental Centre?",
         "ground_truth": "Visit a Network Dental Centre, present the BHN Card and Hong Kong Identity Card for registration, sign the voucher, receive treatment, and Bupa will assess and settle the claim directly if direct billing arrangement is available.",
-        "answer": "To claim Network Dental Benefit at a Network Dental Centre, you need to follow these steps:\n\n1. Visit a Network Dental Centre of your choice and present your BHN Card for registration.\n2. Present the following prior to treatment:\n   - BHN Card\n   - Hong Kong Identity Card\n3. Sign the voucher.\n4. Proceed to the consultation and receive treatment.\n\nAfter receiving treatment, Bupa will assess the claim submitted by the Network Dental Centre and settle the payment directly if a direct billing arrangement is available. If not, Bupa will notify you to settle any shortfall.",
-        "retrieval_score": 0.86859090482035,
-        "ans_similarity": 0.8944413065910339,
+        "answer": "To claim Network Dental Benefit at a Network Dental Centre, you need to follow these steps:\n\n1. Visit a Network Dental Centre of your choice.\n2. Present your BHN Card for registration.\n3. Present the following prior to treatment:\n   - BHN Card\n   - Hong Kong Identity Card\n4. Sign the voucher.\n5. Receive treatment.\n6. Bupa will assess the claim submitted by the Network Dental Centre and settle the payment directly if a direct billing arrangement is available.\n7. If there is a shortfall, Bupa will notify you to settle it.",
+        "retrieval_score": 0.8688138559941323,
+        "ans_similarity": 0.8921952247619629,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 8.241653442382812
+        "latency": 13.44724988937378
       },
       {
         "question": "What does Medically Necessary mean in the Membership Handbook?",
         "ground_truth": "The recommendation of the attending Registered Medical Practitioner is not the sole factor to be considered when determining whether a treatment, medical service or medication is Medically Necessary. Circumstances where Hospital Confinement is considered Medically Necessary include when the Member is having an Emergency.",
-        "answer": "According to the provided context, \"Medically Necessary\" means the necessity to have a treatment, medical service or medication which is:\n\n(a) consistent with the diagnosis and customary medical treatment for the condition at a Normal and Customary charge;\n(b) in accordance with standards of good and prudent medical practice;\n(c) necessary for such a diagnosis or treatment;\n(d) not furnished primarily for the convenience of the Member, Registered Medical Practitioner, Registered Chinese Medicine Practitioner, Chiropractor, Physiotherapist, Qualified Nurse, Anaesthetist, Registered Dentist, Registered Dental Hygienist or any other medical service providers;\n(e) furnished at the most appropriate level which can be safely and effectively provided to the Member;\n(f) with respect to Hospital Confinement, not furnished primarily for the convenience of the Member.",
-        "retrieval_score": 0.8498238009565017,
-        "ans_similarity": 0.8343449234962463,
+        "answer": "According to the Membership Handbook, \"Medically Necessary\" means the necessity to have a treatment, medical service or medication which is:\n\n(a) consistent with the diagnosis and customary medical treatment for the condition at a Normal and Customary charge;\n(b) in accordance with standards of good and prudent medical practice;\n(c) necessary for such a diagnosis or treatment;\n(d) not furnished primarily for the convenience of the Member, Registered Medical Practitioner, Registered Chinese Medicine Practitioner, Chiropractor, Physiotherapist, Qualified Nurse, Anaesthetist, Registered Dentist, Registered Dental Hygienist or any other medical service providers;\n(e) furnished at the most appropriate level which can be safely and effectively provided to the Member; and\n(f) with respect to Hospital Confinement, not furnished primarily for diagnostic scanning purposes, imaging examination or physical therapy.",
+        "retrieval_score": 0.8986478132360122,
+        "ans_similarity": 0.8133372068405151,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 12.360398530960083
+        "latency": 14.043573379516602
       },
       {
         "question": "When does a member's membership terminate upon reaching age 65 under the Bupa scheme?",
         "ground_truth": "Membership terminates on the plan contract anniversary date after the member or their spouse reaches age 65.",
-        "answer": "According to the context, a member's membership terminates upon reaching age 65 on the Scheme's Contract Anniversary Date immediately following the attainment of 65 years old.",
-        "retrieval_score": 0.6679512858390808,
-        "ans_similarity": 0.8757871985435486,
+        "answer": "According to the context, a member's membership will automatically end on the Scheme's Contract Anniversary Date immediately following the attainment of 65 years old.",
+        "retrieval_score": 0.7485011219978333,
+        "ans_similarity": 0.8190338611602783,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 8.111704587936401
+        "latency": 15.257995843887329
       },
       {
         "question": "Until what age can a child dependant remain covered under the Bupa group scheme?",
         "ground_truth": "A child dependant's coverage terminates at age 18 if no longer a full-time student, or at age 23.",
-        "answer": "According to the provided context, a child dependant can remain covered under the Bupa group scheme until they are 22 years old, provided they are a full-time student with valid proof upon request.",
-        "retrieval_score": 0.5524752577145895,
-        "ans_similarity": 0.818023145198822,
+        "answer": "According to the provided context, a child dependant can remain covered under the Bupa group scheme until they reach the age of 23, provided they are a full-time student. If they are not a full-time student, they can remain covered until they reach the age of 18.",
+        "retrieval_score": 0.6489764054616292,
+        "ans_similarity": 0.8357375860214233,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 13.613053560256958
+        "latency": 11.418499946594238
       },
       {
         "question": "What is the Bupa customer service hotline number?",
         "ground_truth": "The 24-hour customer service hotline is (852) 2517 5388.",
         "answer": "The Bupa customer service hotline number is (852) 2517 5388.",
-        "retrieval_score": 0.774531301524904,
-        "ans_similarity": 0.796238899230957,
+        "retrieval_score": 0.7861459520128038,
+        "ans_similarity": 0.7962387800216675,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 7.216028690338135
+        "latency": 11.767671823501587
       },
       {
         "question": "What is the email address for Bupa customer care?",
         "ground_truth": "The email address for Bupa customer care is customercare@bupa.com.hk.",
         "answer": "The email address for Bupa customer care is customercare@bupa.com.hk.",
-        "retrieval_score": 0.8335787918832567,
+        "retrieval_score": 0.8548876908090379,
         "ans_similarity": 1.0,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 7.114720344543457
+        "latency": 11.924506187438965
       },
       {
         "question": "What is the notification period for informing the employer about membership changes?",
         "ground_truth": "You must notify your employer within 31 days if your dependant's membership terminates due to divorce or death of a dependant.",
-        "answer": "According to the context, the notification periods for informing the employer about membership changes are:\n\n- For newly married spouse: within 31 days of marriage.\n- For newborn child: within 45 days of birth.\n- For dependant passing away: within 31 days of the death.\n- For termination of membership (e.g., divorce, child growing up, etc.): within 31 days of the event.",
-        "retrieval_score": 0.7665532827377319,
-        "ans_similarity": 0.8486530780792236,
+        "answer": "According to the context, the notification period for informing the employer about membership changes is as follows:\n\n- For newly married spouse: within 31 days of marriage.\n- For newborn child: within 45 days of birth.\n- For dependant passing away: within 31 days of the death.\n- For termination of membership (due to divorce, child growing up, etc.): within 31 days of the event.",
+        "retrieval_score": 0.7649315297603607,
+        "ans_similarity": 0.8556745648384094,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 6.420430660247803
+        "latency": 9.90998911857605
       },
       {
         "question": "What are the conditions for encashing Privilege Leave on cessation of service under AIESL regulations?",
         "ground_truth": "In case of death of a permanent employee, the legal heirs shall be paid leave salary for Privilege Leave standing to credit. Where an employee retires under clause (a) and (j) of Regulation 14, they will be allowed to encash Privilege Leave. The Company may disallow encashment based on its financial conditions.",
-        "answer": "According to the provided context, the conditions for encashing Privilege Leave on cessation of service under AIESL regulations are as follows:\n\n(i) In case of death of a permanent employee, the legal heirs of the deceased employee shall be paid the leave salary in respect of the Privilege Leave standing to the credit of the employee on the date of death.\n\n(ii) Where an employee retires from service in terms of clause (a) and (c) of Regulation 14, he will be allowed to encash Privilege Leave standing to his credit at the time of such retirement.\n\n(iii) The leave salary which an employee is entitled to encash shall be limited to 300 days and shall be paid in one lump sum as one-time settlement.\n\n(iv) The authority to grant leave shall also be authorized to grant encashment of Privilege Leave to the credit of an employee on the date of his retirement/death.\n\n(v) The benefit of encashment of Privilege Leave shall not be admissible to:\n- Employee on contract\n- Temporary employee\n- Apprentices and Trainees\n- Employees appointed for a specific project",
-        "retrieval_score": 0.7968161371019151,
-        "ans_similarity": 0.909217357635498,
+        "answer": "According to the provided context, the conditions for encashing Privilege Leave on cessation of service under AIESL regulations are as follows:\n\n(i) In case of death of a permanent employee, the legal heirs of the deceased employee shall be paid the leave salary in respect of the Privilege Leave standing to the credit of the employee on the date of death.\n\n(ii) Where an employee retires from service in terms of clause (a) and (c) of Regulation 14, he will be allowed to encash Privilege Leave standing to his credit at the time of such retirement.\n\n(iii) The leave salary which an employee is entitled to encash shall be limited to 300 days and shall be paid in one lump sum as one-time settlement.\n\n(iv) The authority to grant leave shall also be authorized to grant encashment of Privilege Leave to the credit of an employee on the date of his retirement/death.\n\n(v) The benefit of encashment of Privilege Leave shall not be admissible to:\n   (a) Employee on contract\n   (b) Temporary employee\n   (c) Apprentices and Trainees\n   (d) Employees appointed for a specific project",
+        "retrieval_score": 0.8750794490178426,
+        "ans_similarity": 0.9108839631080627,
         "doc_hit": 1.0,
-        "hallucination": "SUPPORTED",
-        "latency": 11.978997468948364
+        "hallucination": "PARTIALLY_SUPPORTED",
+        "latency": 16.02520751953125
       },
       {
         "question": "What are the conditions for granting Study Leave under AIESL regulations?",
         "ground_truth": "Study Leave may be granted only once in the entire period of service. It is for pursuit of studies other than academic or literary subjects, including higher study from a recognized educational institution having direct and close connection with the Company's activities.",
-        "answer": "According to the provided context, the conditions for granting Study Leave under AIESL (Air India Employees' Service Regulations) are as follows:\n\n1. **Eligibility**: Study Leave may be granted only to a permanent employee who has rendered not less than five years continuous service with the Company, including the period of probation in the Company, and who is not due for retirement on superannuation within five years from the date on which he is expected to return to duty after the expiry of the study leave.\n\n2. **Purpose**: Study Leave may be granted to enable the employee to undergo a special course or specialized training in a specialized or technical subject or investigation of a scientific or technical nature, having direct and close connection with the activities of the Company.\n\n3. **Duration**: The maximum study leave that may be granted to an employee shall be ordinarily twelve months at any one time. This may be extended up to a maximum of further twelve months, with the approval of the Chairman and Managing Director/Managing Director.\n\n4. **Total duration**: On no account, this leave shall exceed twenty-four months in all, inclusive of similar kinds of leave for study or training under any other rules.\n\n5. **Type of study**: Study Leave may be granted only for the pursuit of studies other than academic or literary subjects.\n\n6. **Higher study**: Study Leave may also be granted for pursuing a course of higher study from a recognized educational institution, having direct and close connection with the activities of the Company.\n\n7. **Privilege leave**: Privilege leave can be combined with Study Leave.\n\n8. **Medical leave**: In case of medical leave, an extension of study leave on full pay for a period not exceeding one year may be granted if a medical board constituted by the Company for the purpose recommends such extension.",
-        "retrieval_score": 0.8475834077749497,
-        "ans_similarity": 0.8172723650932312,
+        "answer": "According to the provided context, the conditions for granting Study Leave under AIESL regulations are as follows:\n\n1. The employee must be a permanent employee who has rendered not less than five years continuous service with the Company, including the period of probation in the Company.\n2. The employee must not be due for retirement on superannuation within five years from the date on which he is expected to return to duty after the expiry of the study leave.\n3. The study leave is for the pursuit of studies other than academic or literary subjects.\n4. The study leave may also be granted for pursuing a course of higher study from a recognized educational institution, having direct and close connection with the activities of the Company, and the knowledge thus gained is likely to be of advantage and in the interests of the Company.\n5. The maximum study leave that may be granted to an employee shall be ordinarily twelve months at any one time. This may be extended up to a maximum of further twelve months, with the approval of the Chairman and Managing Director/Managing Director.\n6. The total study leave shall not exceed twenty-four months, inclusive of similar kinds of leave for study or training under any other rules.\n7. The employee must submit an application for study leave sufficiently in advance of the commencement of the course, specifying the examination which the applicant may be required to take.\n8. The employee must execute a bond in the form and manner as may be prescribed by the Company, undertaking to serve the Company for a minimum of five years after the expiry of the leave.\n9. The employee must send periodical reports on the progress of studies to the Head of Corporate Functions/Strategic Business Unit/Subsidiary Company concerned.\n10. On completion of the course of study, the employee must submit certificates of examination passed on special courses of study undertaken to the Competent Authority.",
+        "retrieval_score": 0.8652603878424718,
+        "ans_similarity": 0.8187280893325806,
         "doc_hit": 1.0,
-        "hallucination": "SUPPORTED",
-        "latency": 10.842089176177979
+        "hallucination": "PARTIALLY_SUPPORTED",
+        "latency": 17.019822359085083
       },
       {
         "question": "What is the entitlement for Maternity Leave under AIESL regulations?",
         "ground_truth": "In case of miscarriage or medical termination of pregnancy after the 28th week, a female employee would be entitled to Maternity Leave as provided for in Regulation 49. For flying crew, crew shall resume flying duties only after forty two days have lapsed or upon being issued certificate of fitness.",
-        "answer": "I don't know. The provided context does not mention the entitlement for Maternity Leave under AIESL regulations. However, it does mention the claim procedures for Maternity Benefit and reimbursement of expenses for hospital confinement on account of pregnancy.",
-        "retrieval_score": 0.6598606920519541,
-        "ans_similarity": 0.7504695653915405,
+        "answer": "According to the provided context, under the AIESL regulations, permanent female employees with less than two surviving children are eligible for grant of Maternity Leave with full pay, which may extend up to 135 days. However, in other cases, the provisions of the Maternity Benefit Act 1961 would apply.",
+        "retrieval_score": 0.7487789517225221,
+        "ans_similarity": 0.7997121810913086,
         "doc_hit": 1.0,
         "hallucination": "SUPPORTED",
-        "latency": 8.571357011795044
+        "latency": 14.921332359313965
       },
       {
         "question": "What is the Adoption Leave policy under AIESL regulations?",
         "ground_truth": "A female employee who chooses to adopt a child will be eligible for Adoption Leave not exceeding 405 days provided that the child adopted is four months old or less, the adoption is valid and in compliance with the laws of the land.",
-        "answer": "I don't know. The provided context does not mention the Adoption Leave policy under AIESL regulations.",
-        "retrieval_score": 0.6455014083120558,
-        "ans_similarity": 0.7760180234909058,
+        "answer": "According to the AIESL (Air India Employees' Service Regulations) context provided, the Adoption Leave policy is as follows:\n\nA female employee who chooses to adopt a child will be eligible for Adoption Leave not exceeding 405 days, provided that:\n\n(a) The child adopted is four months old or less at the time of adoption.\n(b) The adoption is valid and in compliance with the laws of the land for the time being in force.\n(c) Such leave is permissible only up to two surviving children, inclusive of biological children.\n\nThe employee must furnish all the required documents in proof of such valid adoption.\n\nAdoption Leave can be combined with any other kind of leave.",
+        "retrieval_score": 0.8258527616659801,
+        "ans_similarity": 0.9098726511001587,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 11.382188320159912
+        "latency": 17.083174467086792
       },
       {
         "question": "What is the AIESL regulation regarding uniforms for employees?",
         "ground_truth": "The Company shall provide uniforms free of charge or Uniform Allowance in lieu thereof to employees the Company may notify. It shall be mandatory for an employee to wear the uniform while on duty. This regulation also applies to temporary employees other than those recruited for a short period.",
-        "answer": "According to the provided context, the AIESL (Air India Employees' Service Regulations) regulation regarding uniforms for employees is as follows:\n\nThe Company shall provide uniforms free of charge or Uniform Allowance in lieu thereof to such of the employees whom the Company may notify to be required to wear uniforms. The grade of the uniform shall be such as may be determined by the Company from time to time. It shall be mandatory for an employee to whom uniform is issued, to wear the same while on duty.",
-        "retrieval_score": 0.8830100536346436,
-        "ans_similarity": 0.8332871198654175,
+        "answer": "According to the provided context, the Air India Employees' Service Regulations (AIESL) regulation regarding uniforms for employees is as follows:\n\n\"The Company shall provide uniforms free of charge or Uniform Allowance in lieu thereof to such of the employees whom the Company may notify to be required to wear uniforms. The grade of the uniform shall be such as may be determined by the Company from time to time. It shall be mandatory for an employee to whom uniform is issued, to wear the same while on duty.\"",
+        "retrieval_score": 0.8812016487121582,
+        "ans_similarity": 0.8355824947357178,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 11.502281188964844
+        "latency": 14.555731296539307
       },
       {
         "question": "What happens if an AIESL employee is found absent from place of work during working hours?",
         "ground_truth": "Any employee who after recording attendance is found absent from his place of work during working hours without permission or sufficient reasons shall be liable to be treated as absent from work during the period of his absence.",
-        "answer": "According to the context, specifically Regulation 15, if an AIESL employee is found absent from his place of work during working hours without permission or sufficient reasons, he shall be liable to be treated as absent from work during the period of his absence from his place of work. Deductions from wages for the period of absence may be made in accordance with the principles of \"No-work-No-pay\", as also for disciplinary action.",
-        "retrieval_score": 0.8734265854281764,
-        "ans_similarity": 0.8324854373931885,
+        "answer": "According to the given context, specifically clause (15), if an AIESL employee is found absent from their place of work during working hours without permission or sufficient reasons, they shall be liable to be treated as absent from work during the period of their absence from their place of work. Deductions from wages for the period of absence may be made in accordance with the principles of \"No-work-No-pay\", as also for disciplinary action.",
+        "retrieval_score": 0.8806285108289411,
+        "ans_similarity": 0.8299218416213989,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 11.415618181228638
+        "latency": 18.049002170562744
       },
       {
         "question": "What are the AIESL regulations regarding political activities of employees?",
         "ground_truth": "An employee shall not take part in or associate himself with any political or communal organization, nor take part in elections. However, a qualified employee may exercise the right to vote, and assisting in the conduct of an election in due performance of duty is not a contravention.",
-        "answer": "According to the provided context, the AIESL (Air India Employees' Service Regulations) regulation regarding political activities of employees is as follows:\n\n82. POLITICAL ACTIVITIES ETC\n\nAn employee shall not take part in or associate himself with or subscribe in aid of or assist in any way any political or communal organization.\n\nNo employee shall take part in an election to Parliament or to any Legislature or Local Authority provided that:\n\n- an employee qualified to vote at such election may exercise his right to vote;\n- an employee shall not be deemed to have contravened the provisions of the Regulations by reasons only that he assisted in the conduct of an election in the due performance of a duty imposed on him or under any law for the time being in force.",
-        "retrieval_score": 0.8102475338511996,
-        "ans_similarity": 0.8463987112045288,
+        "answer": "According to the Air India Employees' Service Regulations (AIESR), specifically Regulation 82, an employee shall not take part in or associate himself with or subscribe in aid of or assist in any way any political or communal organization. However, an employee qualified to vote at an election may exercise his right to vote.",
+        "retrieval_score": 0.8359038101302253,
+        "ans_similarity": 0.8686258792877197,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 12.540207386016846
+        "latency": 19.980730772018433
       },
       {
         "question": "What are the AIESL rules regarding IPO/FPO share allotment for employees?",
         "ground_truth": "A full time Director or any employee involved in the decision making process of fixation of price of an IPO/FPO shall not apply for allotment of shares, but Directors/employees may apply for allotment from the preferential quota reserved for employees.",
-        "answer": "Based on the provided context, I found the relevant information regarding IPO/FPO share allotment for employees of AIESL (Air India Engineering Services Limited) in section (a) of the context:\n\n\"A full time Director or any executive/employee involved in the decision making process of fixatron of price of an lnitial Public Offer (IPO)/Follow-on Public Offer (FPO) of shares of the Company and its subsidiary Companies shall not apply either himself/herself or through any member of his/her family or through any other person acting on his/her behalf for allotment of shares (which includes all types of equity related instruments) in an IPO/FPO of the Company and its subsidiary Companies, provided that Director/employees of the Company may apply for allotment of shares out of the category of preferential quota reserved for employees/Directors of the Company.\"\n\nSo, according to the AIESL rules, employees can apply for IPO/FPO share allotment, but only out of the preferential quota reserved for employees/Directors of the Company.",
-        "retrieval_score": 0.852095901966095,
-        "ans_similarity": 0.8959193229675293,
+        "answer": "Based on the provided context, the rules regarding IPO/FPO share allotment for employees of AIESL (Air India Engineering Services Limited) are as follows:\n\n- A full-time Director or any executive/employee involved in the decision-making process of fixing the price of an Initial Public Offer (IPO)/Follow-on Public Offer (FPO) of shares of the Company and its subsidiary Companies shall not apply either himself/herself or through any member of his/her family or through any other person acting on his/her behalf for allotment of shares in an IPO/FPO of the Company and its subsidiary Companies.\n\n- However, Directors/employees of the Company may apply for allotment of shares out of the category of preferential quota reserved for employees/Directors of the Company.\n\n- All executives/employees including full-time Directors of the Company who are in possession of unpublished price-sensitive information will be prohibited from dealing/ trading either in their own name or through any member of their family in the shares of the Company.\n\n- Full-time Directors or executive/employees of the Company or any member of his/her family or any person acting on his/her behalf shall not apply for shares out of any preferential quota reserved for employees/Directors of other Companies.\n\n- Full-time Directors or executive/employees of the Company or any member of his/her family or any person acting on his/her behalf shall not invest in a competing airline or with any organization having competing interests vis-a-vis Air India and/or its subsidiary/joint venture companies or with any organization with whom he has official dealings.",
+        "retrieval_score": 0.8677208423614502,
+        "ans_similarity": 0.8484894633293152,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 11.567426681518555
+        "latency": 16.078466176986694
       },
       {
         "question": "What is the AIESL regulation on suspension pending enquiry?",
         "ground_truth": "Where a disciplinary proceeding against an employee is contemplated or pending, or where criminal proceedings are pending, the Competent Authority may suspend the employee. Suspension pending enquiry shall not be deemed to be a punishment. A suspended employee shall not absent himself from the station without written permission.",
-        "answer": "Based on the provided context, the AIESL regulation on suspension pending enquiry is as follows:\n\n- Suspension pending enquiry can be contemplated or is pending or where criminal proceedings against an employee for any offence are pending or are under investigation (Regulation 101(1)).\n- The Competent Authority may by order in writing, suspend an employee (Regulation 101(1)).\n- Suspension pending enquiry shall not be deemed to be a punishment (Regulation 101(1)(r)).\n- An employee who has been suspended, save in cases covered by Regulation 101(2), shall not absent himself from the station during the period of suspension, except with the written permission of the authority that ordered the suspension (Regulation 101(1)(ii)).\n- An employee who is arrested and/or detained in custody, whether on a criminal charge or otherwise for a period exceeding 48 hours shall be deemed to have been suspended with effect from the date of detention, by an order of the Competent Authority (Regulation 101(2)).\n- An employee who is suspended shall be paid a subsistence allowance at the following rates: \n  - For the first 90 days from the date of suspension, the subsistence allowance shall be equal to half of basic wages, dearness allowance, and other compensatory allowances except productivity/performance linked incentive (Regulation 101(7)(a)).\n  - For a period exceeding 90 days, the subsistence allowance shall be equal to three-fourth of such basic wages, dearness allowance, and other compensatory allowances except productivity/performance linked incentive (Regulation 101(7)(b)).\n  - Where the enquiry is prolonged beyond a period of 90 days for reasons directly attributable to the employee, the subsistence allowance shall be reduced to one-fourth of such basic wages, dearness allowance, and other compensatory allowances (Regulation 101(7)(c)).",
-        "retrieval_score": 0.9278523760872919,
-        "ans_similarity": 0.8761455416679382,
+        "answer": "According to the provided context, the regulation on suspension pending enquiry is Regulation 101 of AIESL.",
+        "retrieval_score": 0.9321129160958368,
+        "ans_similarity": 0.7454736232757568,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 15.899732112884521
+        "latency": 14.666519403457642
       },
       {
         "question": "What is the procedure for disciplinary enquiry under AIESL regulations?",
         "ground_truth": "The Enquiry Officer shall record findings for charges the employee pleads guilty to. If the employee does not plead guilty, the Enquiry Officer shall call upon the Presenting Officer to produce oral and documentary evidence. Witnesses may be cross-examined by the employee or Defence Assistant. The employee shall be given opportunity to produce evidence in defence.",
-        "answer": "Based on the provided context, the procedure for disciplinary enquiry under AIESL regulations is as follows:\n\n1. **Preliminary Enquiry or Explanation**: If the Competent Authority is of the opinion that there are grounds for enquiring into the truth of any imputation of misconduct or misbehavior against an employee, it may order a preliminary enquiry or investigation or call for the explanation of the employee concerned to ascertain if there is any prima facie case against the employee.\n\n2. **Constitution of Complaints Committee**: In cases of misconduct of sexual harassment, the Complaints Committee constituted by the Competent Authority by an Order shall investigate and inquire into the matter. The Complaints Committee shall be deemed to be the Enquiry Authority, and its Report shall be treated as Enquiry Report.\n\n3. **Framing of Charges**: When it is proposed to hold an enquiry against an employee, the Competent Authority shall frame definite charges setting out the grounds on which it is proposed to take action with a statement of allegation enumerating all the facts and circumstances.\n\n4. **Suspension Pending Enquiry**: If the Competent Authority is satisfied that it is necessary or desirable to place the employee under suspension, it may suspend the employee by order in writing.\n\n5. **Conduct of Enquiry**: The Enquiry Authority (Complaints Committee or Enquiry Officer) shall conduct the enquiry and gather evidence.\n\n6. **Submission of Report**: The Enquiry Authority shall submit its Report to the Competent Authority.\n\n7. **Action by Competent Authority**: Based on the Enquiry Report, the Competent Authority may impose penalty, as it may deem appropriate, after issuing a show cause to the employee, along with a copy of the findings of the Enquiry Authority.\n\n8. **Review**: An authority higher than the Appellate Authority may review a case at any stage either on its own motion or on the application of the employee concerned on grounds of material irregularity and vary the punishment awarded in any manner within its competence.",
-        "retrieval_score": 0.623696730687068,
-        "ans_similarity": 0.7321210503578186,
+        "answer": "According to the provided context, the procedure for disciplinary enquiry under AIESL regulations is as follows:\n\n1. **Preliminary Enquiry or Explanation**: Before initiating any enquiry, the Competent Authority may order a preliminary enquiry or investigation or call for the explanation of the employee concerned to ascertain if there is any prima facie case against the employee.\n\n2. **Constitution of Complaints Committee**: In cases of misconduct or misbehavior, including sexual harassment, the Competent Authority shall constitute a Complaints Committee to investigate and inquire into the matter. The Complaints Committee shall be deemed to be the Enquiry Authority, and its Report shall be treated as Enquiry Report.\n\n3. **Framing of Charges**: When it is proposed to hold an enquiry against an employee, the Competent Authority shall frame definite charges setting out the grounds on which it is proposed to take action with a statement of allegation enumerating all the facts and circumstances.\n\n4. **Procedure for Minor Penalties**: If the proposed punishment is a minor penalty, the employee concerned shall be informed in writing of the imputations of misconduct or misbehavior against him and given an opportunity to submit his written statement of defence within a specified period not exceeding 15 days.\n\n5. **Procedure for Major Penalties**: For major penalties, the employee concerned shall be informed in writing of the alleged misconduct and afforded an adequate opportunity of defending himself in accordance with the procedure laid down in Schedule I.\n\n6. **Suspension Pending Enquiry**: The Competent Authority may suspend an employee pending enquiry, but suspension shall not be deemed to be a punishment.\n\n7. **Appeals**: An employee may appeal against an order imposed upon him to the Appellate Authority notified under Regulation 102. The appeal shall be preferred within 30 days from the date of communication of the order appealed against.\n\n8. **Common Proceedings**: Where two or more employees are alleged to have been involved in a misconduct of a common nature, the Competent Authority may appoint a common Enquiry Officer and Presenting Officer, and the Enquiry Officer may conduct a common proceeding in respect of all such employees.\n\n9. **Procedure for Awarding Punishment**: The Competent Authority shall take into consideration the extent and gravity of the misconduct, the previous service record of the person charged, and any extenuating or aggravating circumstances of the case before awarding punishment.",
+        "retrieval_score": 0.6553950791175549,
+        "ans_similarity": 0.7272748947143555,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 16.794490575790405
+        "latency": 20.82880997657776
       }
     ]
   },
   "agentic_rag": {
     "aggregates": {
-      "avg_retrieval": 0.7841310700169999,
+      "avg_retrieval": 0.8010014053415351,
       "doc_hit_rate": 0.9666666666666667,
-      "avg_similarity": 0.8662959655125936,
+      "avg_similarity": 0.8571743329366048,
       "strict_halluc": 0.0,
-      "lenient_halluc": 0.0,
-      "avg_latency": 62.82018603483836,
+      "lenient_halluc": 0.4444444444444444,
+      "avg_latency": 68.1387469291687,
       "breakdown": {
-        "SUPPORTED": 9,
-        "PARTIALLY_SUPPORTED": 0,
+        "SUPPORTED": 5,
+        "PARTIALLY_SUPPORTED": 4,
         "UNSUPPORTED": 0,
         "SKIPPED": 21
       }
@@ -336,12 +336,12 @@
       {
         "question": "What is the total automotive revenue reported by Tesla for the year ended December 31, 2025?",
         "ground_truth": "Tesla reported total automotive revenues for the year ended December 31, 2025 in its annual filing.",
-        "answer": "The total automotive revenue reported by Tesla for the year ended December 31, 2025 is $69,526 million.",
-        "retrieval_score": 0.8144511580467224,
-        "ans_similarity": 0.9426836967468262,
+        "answer": "According to the provided context, the total automotive revenue reported by Tesla for the year ended December 31, 2025 is $82,056 million.",
+        "retrieval_score": 0.7379760146141052,
+        "ans_similarity": 0.9460605978965759,
         "doc_hit": 1.0,
         "hallucination": "SUPPORTED",
-        "latency": 15.7310049533844
+        "latency": 85.2659924030304
       },
       {
         "question": "How much did Tesla's services and other revenue increase in 2025 compared to 2024?",
@@ -351,17 +351,17 @@
         "ans_similarity": 0.8678403496742249,
         "doc_hit": 1.0,
         "hallucination": "SUPPORTED",
-        "latency": 80.77963900566101
+        "latency": 78.47945094108582
       },
       {
         "question": "How much did Tesla's energy generation and storage revenue increase in 2025?",
         "ground_truth": "Energy generation and storage revenue increased $2.69 billion, or 27%, in the year ended December 31, 2025 as compared to 2024, primarily due to increases in Megapack and Powerwall deployments.",
         "answer": "According to the provided context, Tesla's energy generation and storage revenue increased $2.69 billion, or 27%, in the year ended December 31, 2025 as compared to the year ended December 31, 2024.",
-        "retrieval_score": 0.9027856179961451,
+        "retrieval_score": 0.8666152247676142,
         "ans_similarity": 0.8878539204597473,
         "doc_hit": 1.0,
         "hallucination": "SUPPORTED",
-        "latency": 25.47575306892395
+        "latency": 23.45741057395935
       },
       {
         "question": "What percentage of eligible compensation can employees contribute to Tesla's 401(k) plan?",
@@ -371,17 +371,17 @@
         "ans_similarity": 0.8915832042694092,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 57.068092823028564
+        "latency": 63.29436635971069
       },
       {
         "question": "How much does Tesla match in employee 401(k) contributions?",
         "ground_truth": "Tesla matches 50% of each employee's contributions up to a maximum of 6% (capped at $3,000) of the employee's eligible compensation, vested upon one year of service.",
-        "answer": "Based on the provided context, it appears that the company matches 50% of each employee's contributions up to a maximum of 6% (capped at $3,000) of the employee's eligible compensation.",
-        "retrieval_score": 0.6408485161221545,
-        "ans_similarity": 0.8622454404830933,
-        "doc_hit": 1.0,
+        "answer": "Based on the provided context, it appears that Tesla matches 50% of every pre-tax or Roth employee dollar contribution, up to 6% of an employee's salary, capped at $3,000 per year.",
+        "retrieval_score": 0.6258481715036475,
+        "ans_similarity": 0.8929077386856079,
+        "doc_hit": 0.0,
         "hallucination": "SKIPPED",
-        "latency": 75.88182497024536
+        "latency": 49.96420645713806
       },
       {
         "question": "What was the amount of employer contribution expenses Tesla recognized for the 401(k) plan in 2025?",
@@ -391,7 +391,7 @@
         "ans_similarity": 0.9494675397872925,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 66.65092515945435
+        "latency": 73.47538113594055
       },
       {
         "question": "How much was Tesla's valuation allowance for deferred tax assets as of December 31, 2025?",
@@ -401,7 +401,7 @@
         "ans_similarity": 0.8306165933609009,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 86.30394768714905
+        "latency": 90.37382435798645
       },
       {
         "question": "What are Tesla's operating cash outflows from operating leases in 2025?",
@@ -411,37 +411,37 @@
         "ans_similarity": 0.9803347587585449,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 79.27264738082886
+        "latency": 83.34194731712341
       },
       {
         "question": "What cybersecurity oversight does Tesla's Board of Directors provide?",
         "ground_truth": "The Board is briefed by management, including leaders from Information Security, Product Security, Compliance and Legal teams regarding matters of cybersecurity, including existing and new cybersecurity risks, status on how management is addressing those risks, and cybersecurity incidents.",
-        "answer": "Based on the provided context, Tesla's Board of Directors does not directly oversee cybersecurity matters. However, the Audit Committee, which is responsible for the oversight of risks from cybersecurity threats, receives updates from senior management, including leaders from the Information Security, Product Security, Compliance, and Legal teams. \n\nThe Board members do engage in ad hoc conversations with management on cybersecurity-related news events, but the content of these conversations is not specified. Therefore, it is not clear what specific cybersecurity oversight the Board of Directors provides.",
+        "answer": "According to Tesla's Annual Report on Form 10-K for the year ended December 31, 2025, the Board of Directors provides cybersecurity oversight through their engagement in ad hoc conversations with management on cybersecurity-related news events and discussions on updates to the company's cybersecurity risk management and strategy programs.",
         "retrieval_score": 0.8128725126866372,
-        "ans_similarity": 0.7026869058609009,
+        "ans_similarity": 0.6787703037261963,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 88.97144842147827
+        "latency": 89.57675886154175
       },
       {
         "question": "What is the 2025 CEO Performance Award structure at Tesla?",
         "ground_truth": "The 2025 CEO performance award consists of 12 tranches of performance-based restricted stock, each containing a market capitalization milestone and an operational milestone that must be met for the tranche to vest, in addition to a service condition. The fair value was determined using a Monte Carlo valuation model.",
-        "answer": "Based on the provided context, the 2025 CEO Performance Award structure at Tesla is as follows:\n\n- The award was granted on September 3, 2025, and approved by shareholders on November 6, 2025.\n- Approximately 423.7 million shares of performance-based restricted stock were granted to the CEO.\n- The award is structured into 12 tranches.\n- Each tranche will become \"Earned Shares\" upon the CEO remaining in Eligible Service and the certification by disinterested directors that the following have been achieved:\n  - The market capitalization milestone for such tranche.\n  - Any one of the twelve operational milestones (Performance Milestones).\n- The operational milestones include the delivery of 20 million Tesla vehicles, which is considered probable of achievement based on current assumptions.\n- Once an operational milestone is considered probable of achievement, stock-based compensation expense associated with the tranche will be recognized over the relevant Post-Milestone Service Period, which is approximately 7.5 or 10 years from the 2025 CEO Performance Award Accounting Grant Date.\n- Until the shares are earned, the CEO's unearned shares will vote proportionately to the votes of all other shares of Tesla's capital stock that are present and entitled to vote at any annual or special meeting (or similar action) of shareholders.\n- The CEO will be able to direct the vote of such Earned Shares.",
-        "retrieval_score": 0.6515135353519803,
-        "ans_similarity": 0.8806267976760864,
+        "answer": "According to the provided context, the 2025 CEO Performance Award structure at Tesla is as follows:\n\n- The Board of Directors granted approximately 423.7 million shares of performance-based restricted stock to the CEO on September 3, 2025 (the \"2025 CEO Performance Award Grant Date\").\n- The award is performance-based, meaning that each of the 12 tranches of the award will become \"Earned Shares\" upon the CEO remaining in Eligible Service and the certification by disinterested directors that the following have been achieved:\n  - The market capitalization milestone for such tranche.\n  - Any one of the twelve operational milestones (together referred to as the \"Performance Milestones\").\n- The CEO will be able to direct the vote of such Earned Shares.\n- Until such time as there are no shares under the 2025 CEO Performance Award that are not earned, the CEO's unearned shares will vote proportionately to the votes of all other shares of Tesla's capital stock that are present and entitled to vote at any annual or special meeting (or similar action) of Tesla's shareholders (including the CEO).",
+        "retrieval_score": 0.7733297560896193,
+        "ans_similarity": 0.8764858841896057,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 75.37123847007751
+        "latency": 101.09511971473694
       },
       {
         "question": "What is the name of the group health insurance scheme described in the Membership Handbook?",
         "ground_truth": "The group health insurance scheme is called Bupa HealthNet.",
-        "answer": "The name of the group health insurance scheme described in the Membership Handbook is the \"Group Health Insurance Scheme\" or \"the Scheme\", which is administered and underwritten by Bupa (Asia) Limited.",
-        "retrieval_score": 0.7887290053897433,
-        "ans_similarity": 0.8203498125076294,
+        "answer": "The name of the group health insurance scheme described in the Membership Handbook is the \"Group Health Insurance Scheme\" or \"the Scheme\" for short.",
+        "retrieval_score": 0.8012277715735965,
+        "ans_similarity": 0.7427289485931396,
         "doc_hit": 1.0,
         "hallucination": "SUPPORTED",
-        "latency": 13.231410264968872
+        "latency": 14.627084016799927
       },
       {
         "question": "What opportunity does Bupa offer Scheme members to boost their coverage?",
@@ -451,117 +451,117 @@
         "ans_similarity": 0.9642844796180725,
         "doc_hit": 1.0,
         "hallucination": "SUPPORTED",
-        "latency": 53.30500555038452
+        "latency": 63.34031796455383
       },
       {
         "question": "How do you claim Hospital and Surgical Benefit using a BHN Card?",
         "ground_truth": "Present the BHN Card for registration at the hospital, sign the voucher, complete Part I of the Bupa Hospital Claim Form, and the hospital administrator will arrange for completion of Part II by the attending Registered Medical Practitioner.",
-        "answer": "To claim Hospital and Surgical Benefit using a BHN Card, follow these steps:\n\n1. At the hospital:\n   - Present your BHN Card for registration.\n   - Sign the voucher.\n   - Complete Part I of the Bupa Hospital Claim Form.\n   - The hospital administrator will arrange for completion of Part II of the Claim Form by the attending Registered Medical Practitioner.\n\n2. Upon discharge:\n   - Settle payment by BHN Card.\n   - Settle the medical bill by yourself first and obtain an original receipt.\n   - Obtain a medical report or Discharge Summary, if any.\n\n3. After discharge:\n   - Bupa will settle the expenses directly with the hospital.\n   - Bupa will notify you to settle any shortfall, if any.\n   - Within 90 days after the date of discharge, submit to Bupa:\n     - Completed Bupa Hospital Claim Form\n     - Original hospital receipt\n     - Medical report (if applicable)\n     - Discharge Summary / Sick Leave Certificate (if applicable)\n   - You can also submit your claims online by uploading the images of the above documents to myBupa within 90 days after the date of treatment.\n   - Please keep the original receipt for 6 months from the date of claim submission. Bupa may request you to provide the original receipt for auditing purposes.",
-        "retrieval_score": 0.8700891414593006,
-        "ans_similarity": 0.847214937210083,
+        "answer": "To claim Hospital and Surgical Benefit using a BHN Card, follow these steps:\n\n1. At the hospital:\n   - Present your BHN Card for registration.\n   - Sign the voucher.\n   - Complete Part I of the Bupa Hospital Claim Form.\n   - The hospital administrator will arrange for completion of Part II of the Claim Form by the attending Registered Medical Practitioner.\n\n2. Upon discharge:\n   - Settle payment by BHN Card.\n   - Settle the medical bill by yourself first and obtain the original receipt.\n   - Obtain the medical report or Discharge Summary, if any.\n\n3. After discharge:\n   - Bupa will settle the expenses directly with the hospital.\n   - Bupa will notify you to settle any shortfall, if any.\n   - Within 90 days after the date of discharge, submit to Bupa:\n     - Completed Bupa Hospital Claim Form\n     - Original hospital receipt\n     - Medical report (if applicable)\n     - Discharge Summary / Sick Leave Certificate (if applicable)\n   - You can also submit your claims online by uploading the images of the above documents to myBupa within 90 days after the date of treatment.\n\nPlease note that your BHN Card must be embossed with \"HOSPITAL & CLINICAL\" to use it for claiming Hospital and Surgical Benefit.",
+        "retrieval_score": 0.8521248472147974,
+        "ans_similarity": 0.8429237604141235,
         "doc_hit": 1.0,
-        "hallucination": "SUPPORTED",
-        "latency": 14.086004495620728
+        "hallucination": "PARTIALLY_SUPPORTED",
+        "latency": 21.110024452209473
       },
       {
         "question": "How do you claim Network Dental Benefit at a Network Dental Centre?",
         "ground_truth": "Visit a Network Dental Centre, present the BHN Card and Hong Kong Identity Card for registration, sign the voucher, receive treatment, and Bupa will assess and settle the claim directly if direct billing arrangement is available.",
-        "answer": "To claim Network Dental Benefit at a Network Dental Centre, follow these steps:\n\n1. Visit a Network Dental Centre of your choice.\n2. Present your BHN Card for registration.\n3. Present the following prior to treatment:\n   - BHN Card\n   - Hong Kong Identity Card\n4. Sign the voucher.\n5. Receive treatment.\n6. Bupa will assess the claim submitted by the Network Dental Centre and settle the payment directly if a direct billing arrangement is available.\n7. If a direct billing arrangement is not available, Bupa will notify you to settle any shortfall.",
-        "retrieval_score": 0.86859090482035,
-        "ans_similarity": 0.8958209753036499,
+        "answer": "To claim Network Dental Benefit at a Network Dental Centre, you need to follow these steps:\n\n1. Visit a Network Dental Centre of your choice.\n2. Present your BHN Card for registration.\n3. Present the following prior to treatment:\n   - BHN Card\n   - Hong Kong Identity Card\n4. Sign the voucher.\n5. Receive treatment.\n6. Bupa will assess the claim submitted by the Network Dental Centre and settle the payment directly if a direct billing arrangement is available.\n7. If there is a shortfall, Bupa will notify you to settle it.",
+        "retrieval_score": 0.8688138559941323,
+        "ans_similarity": 0.8921952247619629,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 13.587702989578247
+        "latency": 17.535489320755005
       },
       {
         "question": "What does Medically Necessary mean in the Membership Handbook?",
         "ground_truth": "The recommendation of the attending Registered Medical Practitioner is not the sole factor to be considered when determining whether a treatment, medical service or medication is Medically Necessary. Circumstances where Hospital Confinement is considered Medically Necessary include when the Member is having an Emergency.",
-        "answer": "According to the Glossary of terms 23 in the Membership Handbook, \"Medically Necessary\" means the necessity to have a treatment, medical service or medication which is:\n\n(a) consistent with the diagnosis and customary medical treatment for the condition at a Normal and Customary charge;\n(b) in accordance with standards of good and prudent medical practice;\n(c) necessary for such a diagnosis or treatment;\n(d) not furnished primarily for the convenience of the Member, Registered Medical Practitioner, Registered Chinese Medicine Practitioner, Chiropractor, Physiotherapist, Qualified Nurse, Anaesthetist, Registered Dentist, Registered Dental Hygienist or any other medical service providers;\n(e) furnished at the most appropriate level which can be safely and effectively provided to the Member;\n(f) with respect to Hospital Confinement, not furnished primarily for the convenience of the Member.",
-        "retrieval_score": 0.8498238605611464,
-        "ans_similarity": 0.8093132972717285,
+        "answer": "According to the Membership Handbook, \"Medically Necessary\" means the necessity to have a treatment, medical service or medication which is:\n\n(a) consistent with the diagnosis and customary medical treatment for the condition at a Normal and Customary charge;\n(b) in accordance with standards of good and prudent medical practice;\n(c) necessary for such a diagnosis or treatment;\n(d) not furnished primarily for the convenience of the Member, Registered Medical Practitioner, Registered Chinese Medicine Practitioner, Chiropractor, Physiotherapist, Qualified Nurse, Anaesthetist, Registered Dentist, Registered Dental Hygienist or any other medical service providers;\n(e) furnished at the most appropriate level which can be safely and effectively provided to the Member; and\n(f) with respect to Hospital Confinement, not furnished primarily for diagnostic scanning purposes, imaging examination or physical therapy.",
+        "retrieval_score": 0.8986478132360122,
+        "ans_similarity": 0.8133372068405151,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 92.60579991340637
+        "latency": 88.60003113746643
       },
       {
         "question": "When does a member's membership terminate upon reaching age 65 under the Bupa scheme?",
         "ground_truth": "Membership terminates on the plan contract anniversary date after the member or their spouse reaches age 65.",
-        "answer": "According to the provided context, a member's membership terminates upon reaching age 65, but it does not specify that it is on the Scheme's Contract Anniversary Date immediately following the attainment of 65 years old. \n\nThe correct information is that the membership will end on the date the member reaches 65 years old, not on the Scheme's Contract Anniversary Date immediately following the attainment of 65 years old.",
+        "answer": "According to the context, a member's membership terminates upon reaching age 65, but it does not specify that it is on the Scheme's Contract Anniversary Date immediately following the attainment of 65 years old. The correct statement is that the membership will end on the date the member reaches 65 years old.",
         "retrieval_score": 0.7056965529918671,
-        "ans_similarity": 0.8382229804992676,
+        "ans_similarity": 0.8506401181221008,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 65.29097986221313
+        "latency": 66.96040797233582
       },
       {
         "question": "Until what age can a child dependant remain covered under the Bupa group scheme?",
         "ground_truth": "A child dependant's coverage terminates at age 18 if no longer a full-time student, or at age 23.",
-        "answer": "According to the context, a child dependant can remain covered under the Bupa group scheme until they reach the age of 22 years if they are a full-time student, or 18 years old if they are not a full-time student.",
-        "retrieval_score": 0.6722423613071442,
-        "ans_similarity": 0.8451592326164246,
+        "answer": "According to the context, a child dependent can remain covered under the Bupa group scheme until they reach the age of 23, provided they are a full-time student. If they are not a full-time student, they can remain covered until they reach the age of 18.",
+        "retrieval_score": 0.6812104463577271,
+        "ans_similarity": 0.8218329548835754,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 71.7472186088562
+        "latency": 67.17205214500427
       },
       {
         "question": "What is the Bupa customer service hotline number?",
         "ground_truth": "The 24-hour customer service hotline is (852) 2517 5388.",
         "answer": "The Bupa customer service hotline number is (852) 2517 5388.",
-        "retrieval_score": 0.774531301524904,
+        "retrieval_score": 0.7866162028577592,
         "ans_similarity": 0.7962387800216675,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 67.21234393119812
+        "latency": 71.26633477210999
       },
       {
         "question": "What is the email address for Bupa customer care?",
         "ground_truth": "The email address for Bupa customer care is customercare@bupa.com.hk.",
         "answer": "The email address for Bupa customer care is customercare@bupa.com.hk.",
-        "retrieval_score": 0.8335787918832567,
+        "retrieval_score": 0.8548876908090379,
         "ans_similarity": 1.0,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 12.346846580505371
+        "latency": 17.919870853424072
       },
       {
         "question": "What is the notification period for informing the employer about membership changes?",
         "ground_truth": "You must notify your employer within 31 days if your dependant's membership terminates due to divorce or death of a dependant.",
-        "answer": "Based on the provided context, the notification periods for informing the employer about membership changes are as follows:\n\n- For newly married spouse, please notify your employer within 31 days of your marriage.\n- For newborn child, please notify your employer within 45 days of your child's birth.\n- For termination of membership due to various events (such as leaving service, reaching the age of 65, children growing up, divorce, or dependant passing away), it is implied that notification is required, but the exact time frame is not specified in the context.\n\nNote that the context does not provide a general notification period for all membership changes, but rather specifies the notification periods for specific events.",
+        "answer": "According to the provided context, the notification periods for informing the employer about membership changes are as follows:\n\n- For newly married spouse, please notify your employer within 31 days of your marriage.\n- For newborn child, please notify your employer within 45 days of your child's birth.\n- For termination of membership due to various events (such as leaving service, reaching the age of 65, children growing up, divorce, or dependant passing away), it is implied that notification is required, but the exact time frame is not specified.\n\nNote that the context does not provide a general notification period for all membership changes, but rather specific time frames for certain events.",
         "retrieval_score": 0.777188241481781,
-        "ans_similarity": 0.8406178951263428,
+        "ans_similarity": 0.8470299243927002,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 70.79595160484314
+        "latency": 73.07365822792053
       },
       {
         "question": "What are the conditions for encashing Privilege Leave on cessation of service under AIESL regulations?",
         "ground_truth": "In case of death of a permanent employee, the legal heirs shall be paid leave salary for Privilege Leave standing to credit. Where an employee retires under clause (a) and (j) of Regulation 14, they will be allowed to encash Privilege Leave. The Company may disallow encashment based on its financial conditions.",
-        "answer": "According to the provided context, the conditions for encashing Privilege Leave on cessation of service under AIESL regulations are as follows:\n\n1. The employee shall be permitted to encash Privilege Leave subject to the following conditions:\n2. (i) In case of death of a permanent employee, the legal heirs of the deceased employee shall be paid the leave salary in respect of the Privilege Leave standing to the credit of the employee on the date of death.\n3. (ii) Where an employee retires from service in terms of clause (a) and (c) of Regulation 14, he will be allowed to encash Privilege Leave standing to his credit at the time of such retirement.\n4. (iii) The leave salary which an employee is entitled to encash shall be limited to 300 days and shall be paid in one lump sum as one-time settlement.\n5. (iv) The authority to grant leave shall also be authorized to grant encashment of Privilege Leave to the credit of an employee on the date of his retirement/death.\n6. (v) The benefit of encashment of Privilege Leave shall not be admissible to:\n   - (a) Employee on contract\n   - (b) Temporary employee\n   - (c) Apprentices and Trainees\n   - (d) Employees appointed for a specific project",
-        "retrieval_score": 0.7901817513836755,
-        "ans_similarity": 0.9055629968643188,
+        "answer": "According to the provided context, the conditions for encashing Privilege Leave on cessation of service under AIESL regulations are as follows:\n\n(i) In case of death of a permanent employee, the legal heirs of the deceased employee shall be paid the leave salary in respect of the Privilege Leave standing to the credit of the employee on the date of death.\n\n(ii) Where an employee retires from service in terms of clause (a) and (c) of Regulation 14, he will be allowed to encash Privilege Leave standing to his credit at the time of such retirement.\n\n(iii) The leave salary which an employee is entitled to encash shall be limited to 300 days and shall be paid in one lump sum as one-time settlement.\n\n(iv) The authority to grant leave shall also be authorized to grant encashment of Privilege Leave to the credit of an employee on the date of his retirement/death.\n\n(v) The benefit of encashment of Privilege Leave shall not be admissible to:\n   (a) Employee on contract\n   (b) Temporary employee\n   (c) Apprentices and Trainees\n   (d) Employees appointed for a specific project",
+        "retrieval_score": 0.8517964137925043,
+        "ans_similarity": 0.9108839631080627,
         "doc_hit": 1.0,
-        "hallucination": "SUPPORTED",
-        "latency": 76.26188683509827
+        "hallucination": "PARTIALLY_SUPPORTED",
+        "latency": 74.17321705818176
       },
       {
         "question": "What are the conditions for granting Study Leave under AIESL regulations?",
         "ground_truth": "Study Leave may be granted only once in the entire period of service. It is for pursuit of studies other than academic or literary subjects, including higher study from a recognized educational institution having direct and close connection with the Company's activities.",
-        "answer": "According to the provided context, the conditions for granting Study Leave under AIESL regulations are as follows:\n\n1. **Eligibility**: Study Leave may be granted only to a permanent employee who has rendered not less than five years continuous service with the Company, including the period of probation in the Company, and who is not due for retirement on superannuation within five years from the date on which he is expected to return to duty after the expiry of the study leave.\n\n2. **Purpose**: Study Leave is granted to enable the employee to undergo a special course or specialized training in a specialized or technical subject or investigation of a scientific or technical nature, having direct and close connection with the activities of the Company.\n\n3. **Duration**: The maximum study leave that may be granted to an employee shall be ordinarily twelve months at any one time. This may be extended up to a maximum of further twelve months, with the approval of the Chairman and Managing Director/Managing Director.\n\n4. **Total duration**: On no account, this leave shall exceed twenty-four months in all, inclusive of similar kinds of leave for study or training under any other rules.\n\n5. **Academic or literary subjects**: Study Leave may be granted only for the pursuit of studies other than academic or literary subjects.\n\n6. **Higher study**: Study Leave may also be granted for pursuing a course of higher study from a recognized educational institution, having direct and close connection with the activities of the Company.\n\n7. **Privilege leave**: Privilege leave can be combined with Study Leave.\n\n8. **Bond**: Every employee who has been granted study leave shall execute a bond in the form and manner as may be prescribed by the Company, undertaking to serve the Company for a minimum of five years after the expiry of the leave.\n\n9. **Reporting**: Every employee who has been granted study leave shall send to the Head of Corporate Functions/Strategic Business Unit/Subsidiary Company concerned periodical reports on the progress of studies.\n\n10. **Certificates**: On completion of the course of study, the employee shall submit to the Competent Authority certificates of examination passed on special courses of study undertaken.\n\n11. **Resumption of duty**: When the course of study falls short of leave granted (initial as well as extended), the employee shall resume duty on the conclusion of the course of study.\n\n12. **No service**: Study Leave will not count as service for the purpose of employee earning leave of any kind.\n\n13. **No facilities**: During Study Leave, an employee will not be entitled to any facilities such as uniform, passage, etc. However, an employee will be entitled to medical facility.\n\n14. **No pay and allowances**: Study Leave will be granted without any pay and allowances.\n\n15. **No liability**: The Company will not be liable to bear any expenditure towards the cost of study.\n\n16. **Application**: All applications for study leave should be submitted to the Competent Authority through the Head of Corporate Functions/Strategic Business Unit/Subsidiary Company concerned. Such applications should contain full details of the course of studies, proof of admission to the Institute/College or University together with a copy of the programme of the study.",
-        "retrieval_score": 0.8475834375772721,
-        "ans_similarity": 0.8463966846466064,
+        "answer": "According to the provided context, the conditions for granting Study Leave under AIESL regulations are as follows:\n\n1. **Eligibility**: Study Leave may be granted only to a permanent employee who has rendered not less than five years continuous service with the Company, including the period of probation in the Company, and who is not due for retirement on superannuation within five years from the date on which he is expected to return to duty after the expiry of the study leave.\n\n2. **Purpose**: Study Leave is granted to enable the employee to undergo a special course or specialized training in a specialized or technical subject or investigation of a scientific or technical nature, having direct and close connection with the activities of the Company.\n\n3. **Duration**: The maximum study leave that may be granted to an employee shall be ordinarily twelve months at any one time. This may be extended up to a maximum of further twelve months, with the approval of the Chairman and Managing Director/Managing Director.\n\n4. **Limitation**: On no account, this leave shall exceed twenty-four months in all, inclusive of similar kinds of leave for study or training under any other rules.\n\n5. **Application**: The application for study leave should be submitted sufficiently in advance of the commencement of the course and should contain full details of the course of studies, proof of admission to the institute/college or university, together with a copy of the programme of the study.\n\n6. **Bond**: Every employee who has been granted study leave shall execute a bond in the form and manner as may be prescribed by the Company, undertaking to serve the Company for a minimum of five years after the expiry of the leave.\n\n7. **Reporting**: Every employee who has been granted study leave shall send to the Head of Corporate Functions/Strategic Business Unit/Subsidiary Company concerned, periodical reports on the progress of studies, which should not normally exceed four months at one time.\n\n8. **Certification**: On completion of the course of study, the employee shall submit to the Competent Authority certificates of examination passed on special courses of study undertaken.\n\n9. **Resumption of duty**: When the course of study falls short of leave granted (initial as well as extended), the employee shall resume duty on the conclusion of the course of study.\n\n10. **Service**: The entire period of study leave will not count as service for the purpose of increment, and neither will an employee earn notional increment upon his resuming duties after the expiry of the period of study leave.",
+        "retrieval_score": 0.8652603878424718,
+        "ans_similarity": 0.8322523832321167,
         "doc_hit": 1.0,
-        "hallucination": "SUPPORTED",
-        "latency": 86.1723997592926
+        "hallucination": "PARTIALLY_SUPPORTED",
+        "latency": 96.82021069526672
       },
       {
         "question": "What is the entitlement for Maternity Leave under AIESL regulations?",
         "ground_truth": "In case of miscarriage or medical termination of pregnancy after the 28th week, a female employee would be entitled to Maternity Leave as provided for in Regulation 49. For flying crew, crew shall resume flying duties only after forty two days have lapsed or upon being issued certificate of fitness.",
-        "answer": "Based on the provided context, I was unable to find any information about the entitlement for Maternity Leave under AIESL regulations. However, I can provide some general information about maternity leave in India.\n\nIn India, the Maternity Benefit Act, 1961, provides for maternity leave to women employees in certain establishments. The Act entitles eligible women employees to take leave for a maximum period of 12 weeks for confinement and 6 weeks in case of miscarriage.\n\nHowever, I couldn't find any specific information about the entitlement for Maternity Leave under AIESL regulations. If you need more information, I suggest checking the official website of AIESL or consulting the relevant authorities.\n\nAdditionally, I found a general information about maternity leave in the context of the Family and Medical Leave Act (FMLA) in the United States, which is not relevant to AIESL regulations.\n\nTo provide a more accurate answer, I would need more information or context about AIESL regulations regarding maternity leave.",
-        "retrieval_score": 0.4618155831514403,
-        "ans_similarity": 0.8009931445121765,
-        "doc_hit": 0.0,
-        "hallucination": "SUPPORTED",
-        "latency": 89.62012720108032
+        "answer": "According to the provided context, the entitlement for Maternity Leave under AIESL regulations is as follows:\n\n- Permanent female employees with less than two surviving children are eligible for grant of Maternity Leave with full pay, which may extend up to 135 days.\n- In other cases, the provisions of the Maternity Benefit Act 1961 would apply.",
+        "retrieval_score": 0.7671582227529481,
+        "ans_similarity": 0.7826180458068848,
+        "doc_hit": 1.0,
+        "hallucination": "PARTIALLY_SUPPORTED",
+        "latency": 65.20866870880127
       },
       {
         "question": "What is the Adoption Leave policy under AIESL regulations?",
@@ -571,7 +571,7 @@
         "ans_similarity": 0.9171500205993652,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 66.0798544883728
+        "latency": 72.55908393859863
       },
       {
         "question": "What is the AIESL regulation regarding uniforms for employees?",
@@ -581,7 +581,7 @@
         "ans_similarity": 0.8930869698524475,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 62.661354064941406
+        "latency": 65.66131401062012
       },
       {
         "question": "What happens if an AIESL employee is found absent from place of work during working hours?",
@@ -591,17 +591,17 @@
         "ans_similarity": 0.8411235809326172,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 58.57280468940735
+        "latency": 69.43849992752075
       },
       {
         "question": "What are the AIESL regulations regarding political activities of employees?",
         "ground_truth": "An employee shall not take part in or associate himself with any political or communal organization, nor take part in elections. However, a qualified employee may exercise the right to vote, and assisting in the conduct of an election in due performance of duty is not a contravention.",
-        "answer": "According to the provided context, the regulations regarding political activities of employees are as follows:\n\n- An employee shall not take part in or associate himself with or subscribe in aid of or assist in any way any political or communal organization.\n- No employee shall take part in an election to Parliament or to any Legislature or Local Authority, except that an employee qualified to vote at such election may exercise his right to vote.\n- An employee shall not be deemed to have contravened the provisions of the Regulations by reasons only that he assisted in the conduct of an election in the due performance of a duty imposed on him or under any law for the time being in force.\n\nThese regulations are stated in sections 82 of the AIESL regulations.",
-        "retrieval_score": 0.8048595256275601,
-        "ans_similarity": 0.884209930896759,
+        "answer": "According to the provided context, the regulations regarding political activities of employees at AIESL are as follows:\n\n1. An employee shall not take part in or associate himself with or subscribe in aid of or assist in any way any political or communal organization.\n2. An employee shall not take part in an election to Parliament or to any Legislature or Local Authority, except that an employee qualified to vote at such election may exercise his right to vote.\n3. An employee shall not be deemed to have contravened the provisions of the Regulations by reasons only that he assisted in the conduct of an election in the due performance of a duty imposed on him or under any law for the time being in force.\n\nAdditionally, employees are prohibited from engaging in certain activities that may be considered prejudicial to the interests of the Company, Sovereignty and integrity of India, or Public Order, such as:\n\n* Participating in demonstrations that are prejudicial to the interests of the Company, Sovereignty and integrity of India, or Public Order.\n* Resorting to or abetting any form of strike, threat, or coercion in connection with any matter pertaining to their service or the service of any other employee, except in accordance with law.\n* Taking part in an illegal strike, i.e., a strike which is in contravention of the provisions of the Industrial Disputes Act, 1917.",
+        "retrieval_score": 0.8359038101302253,
+        "ans_similarity": 0.8411996960639954,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 64.131511926651
+        "latency": 78.37592387199402
       },
       {
         "question": "What are the AIESL rules regarding IPO/FPO share allotment for employees?",
@@ -611,27 +611,27 @@
         "ans_similarity": 0.8510345220565796,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 84.4078688621521
+        "latency": 88.57360529899597
       },
       {
         "question": "What is the AIESL regulation on suspension pending enquiry?",
         "ground_truth": "Where a disciplinary proceeding against an employee is contemplated or pending, or where criminal proceedings are pending, the Competent Authority may suspend the employee. Suspension pending enquiry shall not be deemed to be a punishment. A suspended employee shall not absent himself from the station without written permission.",
-        "answer": "Based on the provided context, the AIESL regulation on suspension pending enquiry is as follows:\n\n- An employee can be suspended pending enquiry if a disciplinary proceeding against him is contemplated or is pending, or if criminal proceedings against him are pending or under investigation (Regulation 101(1)).\n- The suspension shall not be deemed to be a punishment (Regulation 101(1)(r)).\n- An employee who has been suspended shall not absent himself from the station during the period of suspension, except with the written permission of the authority that ordered the suspension (Regulation 101(1)(ii)).\n- If an employee is arrested and/or detained in custody for a period exceeding 48 hours, he shall be deemed to have been suspended with effect from the date of detention, by an order of the Competent Authority (Regulation 101(2)).\n- An order of suspension made or deemed to have been made under these Regulations may at any time be revoked by the Competent Authority (Regulation 101(3)).\n- An employee who is placed under suspension shall be paid a subsistence allowance at the following rates:\n  - For the first 90 days from the date of suspension, the subsistence allowance shall be equal to half of basic wages, dearness allowance, and other compensatory allowances except productivity/performance linked incentive (Regulation 101(7)(a)).\n  - If the departmental enquiry gets prolonged and the employee continues to be under suspension for a period exceeding 90 days, the subsistence allowance shall be equal to three-fourth of such basic wages, dearness allowance, and other compensatory allowances except productivity/performance linked incentive (Regulation 101(7)(b)).\n  - If the enquiry is prolonged beyond 90 days for reasons directly attributable to the employee, the subsistence allowance shall be reduced to one-fourth of such basic wages, dearness allowance, and other compensatory allowances (Regulation 101(7)(c)).",
-        "retrieval_score": 0.9278523760872919,
-        "ans_similarity": 0.8707647323608398,
+        "answer": "According to the provided context, the regulation on suspension pending enquiry is Regulation 101 of AIESL.",
+        "retrieval_score": 0.9321129160958368,
+        "ans_similarity": 0.7454736232757568,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 74.56386375427246
+        "latency": 81.13845491409302
       },
       {
         "question": "What is the procedure for disciplinary enquiry under AIESL regulations?",
         "ground_truth": "The Enquiry Officer shall record findings for charges the employee pleads guilty to. If the employee does not plead guilty, the Enquiry Officer shall call upon the Presenting Officer to produce oral and documentary evidence. Witnesses may be cross-examined by the employee or Defence Assistant. The employee shall be given opportunity to produce evidence in defence.",
-        "answer": "Based on the provided context, the procedure for disciplinary enquiry under AIESL regulations is as follows:\n\n1. **Preliminary Enquiry or Explanation**: Before initiating a disciplinary enquiry, the Competent Authority may order a preliminary enquiry or investigation or call for the explanation of the employee concerned to ascertain if there is any prima facie case against the employee.\n\n2. **Constitution of Complaints Committee**: In cases of misconduct or misbehavior, including sexual harassment, the Competent Authority shall constitute a Complaints Committee to investigate and inquire into the matter. The Complaints Committee shall be deemed to be the Enquiry Authority, and its Report shall be treated as an Enquiry Report.\n\n3. **Framing of Charges**: When it is proposed to hold an enquiry against an employee, the Competent Authority shall frame definite charges setting out the grounds on which it is proposed to take action with a statement of allegation enumerating all the facts and circumstances.\n\n4. **Suspension Pending Enquiry**: If the Competent Authority is satisfied that it is necessary or desirable to place the employee under suspension, it may do so by order in writing. Suspension pending enquiry shall not be deemed to be a punishment.\n\n5. **Procedure for Disciplinary Enquiry**: The Competent Authority shall follow the procedure laid down in Schedule I, which includes:\n   - Informing the employee in writing of the alleged misconduct and affording him an adequate opportunity of defending himself.\n   - Conducting the enquiry in accordance with the procedure laid down in Schedule I.\n\n6. **Awarding Punishment**: After considering the extent and gravity of the misconduct, the previous service record of the person charged, and any extenuating or aggravating circumstances of the case, the Competent Authority may impose a penalty as it may deem appropriate.\n\n7. **Appeal**: An employee may appeal against an order imposed upon him on any of the penalties specified in Regulation 100 to the Appellate Authority notified under Regulation 102.",
-        "retrieval_score": 0.649337696723449,
-        "ans_similarity": 0.7253947854042053,
+        "answer": "According to the provided context, the procedure for disciplinary enquiry under AIESL regulations is as follows:\n\n1. **Preliminary Enquiry or Explanation**: Before initiating any enquiry, the Competent Authority may order a preliminary enquiry or investigation or call for the explanation of the employee concerned to ascertain if there is any prima facie case against the employee.\n\n2. **Constitution of Complaints Committee**: In cases of misconduct or misbehavior, including sexual harassment, the Competent Authority shall constitute a Complaints Committee to investigate and inquire into the matter. The Complaints Committee shall be deemed to be the Enquiry Authority, and its Report shall be treated as Enquiry Report.\n\n3. **Framing of Charges**: When it is proposed to hold an enquiry against an employee, the Competent Authority shall frame definite charges setting out the grounds on which it is proposed to take action with a statement of allegation enumerating all the facts and circumstances.\n\n4. **Procedure for Minor Penalties**: If the proposed punishment is a minor penalty, the employee concerned shall be informed in writing of the imputations of misconduct or misbehavior against him and given an opportunity to submit his written statement of defence within a specified period not exceeding 15 days.\n\n5. **Procedure for Major Penalties**: For major penalties, the employee concerned shall be informed in writing of the alleged misconduct and afforded an adequate opportunity of defending himself in accordance with the procedure laid down in Schedule I.\n\n6. **Suspension Pending Enquiry**: The Competent Authority may suspend an employee pending enquiry, but suspension shall not be deemed to be a punishment.\n\n7. **Appeals**: An employee may appeal against an order imposed upon him to the Appellate Authority notified under Regulation 102. The appeal shall be preferred within 30 days from the date of communication of the order appealed against.\n\n8. **Common Proceedings**: Where two or more employees are alleged to have been involved in a misconduct of a common nature, the Competent Authority may appoint a common Enquiry Officer and Presenting Officer, and the Enquiry Officer may conduct a common proceeding in respect of all such employees.\n\n9. **Procedure for Awarding Punishment**: The Competent Authority shall take into consideration the extent and gravity of the misconduct, the previous service record of the person charged, and any extenuating or aggravating circumstances of the case before awarding punishment.",
+        "retrieval_score": 0.6553950791175549,
+        "ans_similarity": 0.7272748947143555,
         "doc_hit": 1.0,
         "hallucination": "SKIPPED",
-        "latency": 96.41812372207642
+        "latency": 112.283700466156
       }
     ]
   }
