@@ -3,7 +3,6 @@ import re
 from dotenv import load_dotenv
 load_dotenv()
 
-import asyncio
 from typing import List, Dict, Any
 from typing_extensions import TypedDict
 
@@ -14,7 +13,7 @@ from pydantic import BaseModel, Field
 from langchain_groq import ChatGroq
 
 from langgraph.graph import END, StateGraph, START
-from src.database import get_local_retriever
+from src.retrieval import dedupe_with_scores, hybrid_rerank
 
 
 # 1. Environment Configuration
@@ -166,70 +165,43 @@ def condense_question(state: GraphState) -> Dict[str, Any]:
 
 
 def retrieve(state: GraphState) -> Dict[str, Any]:
-    print("--- RETRIEVING DOCUMENTS (k=20) ---")
+    print("--- RETRIEVING DOCUMENTS (k=60 candidates -> BM25+RRF hybrid rerank -> top 6) ---")
     question = state["question"]
     source_filter = state.get("source")
-    
+
     from src.database import get_vectorstore
-        
+
     vectorstore = get_vectorstore()
-    
+
     # Setup document metadata filtering
     filter_dict = None
     if source_filter and source_filter != "all":
         filter_dict = {"source": os.path.basename(source_filter)}
         print(f"-> Filtering retrieval by document source: {filter_dict['source']}")
-    
-    # Retrieve top 60 candidates
-    # Pinecone returns (Document, score) where score is cosine similarity (0-1, higher = more similar)
+
+    # 1. Dense retrieval: top-60 candidates.
+    # Pinecone returns (Document, score) where score is cosine similarity (0-1, higher = more similar).
     docs_with_scores = vectorstore.similarity_search_with_score(question, k=60, filter=filter_dict)
-    
-    # Normalize path and deduplicate based on content
-    seen_contents = set()
-    unique_docs_with_scores = []
-    for doc, score in docs_with_scores:
-        if "source" in doc.metadata:
-            doc.metadata["source"] = os.path.basename(doc.metadata["source"])
-            
-        cleaned = " ".join(doc.page_content.split())
-        if cleaned not in seen_contents:
-            seen_contents.add(cleaned)
-            # Pinecone cosine similarity is already 0-1 (higher = more similar)
-            similarity = max(0.0, min(1.0, score))
-            doc.metadata["score"] = similarity
-            unique_docs_with_scores.append((doc, similarity))
-            
-    # Apply lexical keyword boosting (hybrid reranking)
-    stop_words = {"what", "are", "all", "the", "different", "scenarios", "where", "an", "employee", "service", "can", "be", "regularized", "or", "impacted", "by", "leave", "without", "pay", "is", "a", "of", "in", "to", "for", "on", "with", "at", "by", "from", "it", "this", "that"}
-    words = re.findall(r'\b\w+\b', question.lower())
-    keywords = [w for w in words if len(w) > 2 and w not in stop_words]
-    
-    reranked_docs = []
-    for doc, similarity in unique_docs_with_scores:
-        content_lower = doc.page_content.lower()
-        matches = sum(1 for kw in keywords if kw in content_lower)
-        lexical_score = min(1.0, matches / max(1, len(keywords)))
-        
-        # Combined score: 60% semantic + 40% lexical
-        combined_score = 0.6 * similarity + 0.4 * lexical_score
-        doc.metadata["combined_score"] = combined_score
-        reranked_docs.append((doc, combined_score))
-        
-    reranked_docs.sort(key=lambda x: x[1], reverse=True)
-    
-    # Keep top 6 chunks (safety recall margin buffer)
-    top_docs_with_scores = reranked_docs[:6]
-    
-    # Compress content: clean up whitespace
+
+    # 2. Normalize sources, clamp cosine, and deduplicate by content.
+    unique_docs_with_scores = dedupe_with_scores(docs_with_scores)
+
+    # 3. Hybrid rerank: fuse the dense (cosine) ranking with a BM25 lexical
+    #    ranking over the same candidate pool via Reciprocal Rank Fusion, then
+    #    keep the top 6. Raw cosine is preserved on metadata["score"] so the
+    #    downstream routers/confidence still reason about semantic similarity.
+    top_docs = hybrid_rerank(unique_docs_with_scores, question, top_n=6, mode="hybrid")
+
+    # 4. Compress content: clean up whitespace.
     final_docs = []
-    for doc, _ in top_docs_with_scores:
+    for doc in top_docs:
         content = doc.page_content
         content = re.sub(r'\n{3,}', '\n\n', content)
         content = re.sub(r' {2,}', ' ', content)
         doc.page_content = content.strip()
         final_docs.append(doc)
-        
-    print(f"-> Retained {len(final_docs)} reranked compressed unique chunks.")
+
+    print(f"-> Retained {len(final_docs)} BM25+RRF reranked compressed unique chunks.")
     return {
         "documents": final_docs,
         "question": question,

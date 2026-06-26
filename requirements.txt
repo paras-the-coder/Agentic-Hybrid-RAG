@@ -18,3 +18,7 @@ uvicorn
 python-multipart
 sseclient-py
 scikit-learn
+rank-bm25
+scipy
+numpy
+pytest

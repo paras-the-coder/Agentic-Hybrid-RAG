@@ -27,7 +27,7 @@ def run_agentic_rag():
         
         if total_vectors == 0:
             print(" No documents ingested yet. Use the web UI to upload PDFs, or run:")
-            print("   .\.venv\Scripts\python.exe -c \"from src.database import ingest_pdf_directory; ingest_pdf_directory()\"")
+            print("   .\\.venv\\Scripts\\python.exe -c \"from src.database import ingest_pdf_directory; ingest_pdf_directory()\"")
             
     except Exception as e:
         print(f" Pinecone connection failed: {e}")
@@ -58,8 +58,13 @@ def run_agentic_rag():
         inputs = {"question": user_input}
         final_state = None
 
+        # The graph is compiled with a MemorySaver checkpointer, which requires a
+        # thread_id. Using a stable id also gives the CLI conversation memory
+        # across turns (matching the web UI's per-session behavior).
+        config = {"configurable": {"thread_id": "cli_session"}}
+
         # Stream the states visually to console output
-        for output in app.stream(inputs):
+        for output in app.stream(inputs, config=config):
             for node_name, node_state in output.items():
                 final_state = node_state
 

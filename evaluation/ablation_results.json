@@ -1,36 +1,117 @@
 {
+  "config": {
+    "candidate_k": 60,
+    "top_k": 6,
+    "rrf_k": 60
+  },
   "vector_only": {
     "in_domain": {
       "n_queries": 30,
+      "top_k": 6,
       "aggregates": {
-        "precision_at_k": 0.18333333333333332,
-        "recall_at_k": 0.6666666666666666,
-        "mrr": 0.5722222222222223,
-        "hit_rate": 0.6666666666666666,
+        "precision_at_k": 0.13888888888888887,
+        "recall_at_k": 0.711111111111111,
+        "mrr": 0.5827777777777778,
+        "hit_rate": 0.7333333333333333,
         "source_hit": 1.0
-      }
+      },
+      "per_query_mrr": [
+        0.2,
+        1.0,
+        1.0,
+        0.2,
+        0.0,
+        0.16666666666666666,
+        1.0,
+        1.0,
+        0.3333333333333333,
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.25,
+        0.3333333333333333,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.0
+      ]
     },
     "out_of_domain": {
       "n_queries": 10,
-      "fallback_trigger_rate": 0.8
-    },
-    "elapsed_sec": 112.95732116699219
+      "fallback_threshold": 0.4,
+      "fallback_trigger_rate": 0.0
+    }
   },
   "bm25_hybrid": {
     "in_domain": {
       "n_queries": 30,
+      "top_k": 6,
       "aggregates": {
-        "precision_at_k": 0.18333333333333332,
-        "recall_at_k": 0.6666666666666666,
-        "mrr": 0.5722222222222223,
-        "hit_rate": 0.6666666666666666,
+        "precision_at_k": 0.1333333333333333,
+        "recall_at_k": 0.6777777777777777,
+        "mrr": 0.65,
+        "hit_rate": 0.7,
         "source_hit": 1.0
-      }
+      },
+      "per_query_mrr": [
+        1.0,
+        1.0,
+        0.5,
+        1.0,
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.5,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.5,
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.0
+      ]
     },
     "out_of_domain": {
       "n_queries": 10,
-      "fallback_trigger_rate": 0.8
-    },
-    "elapsed_sec": 110.08733797073364
+      "fallback_threshold": 0.4,
+      "fallback_trigger_rate": 0.0
+    }
+  },
+  "significance_test": {
+    "method": "wilcoxon_signed_rank",
+    "paired_on": "per_query_mrr",
+    "statistic": 9.0,
+    "p_value": 0.20646258713596,
+    "n_pairs": 30,
+    "n_nonzero_diffs": 8,
+    "significant_at_0.05": false,
+    "mean_mrr_delta": 0.06722222222222224
   }
 }
